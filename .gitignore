@@ -1,0 +1,32 @@
+# Secrets
+.env
+.env.*
+!.env.example
+.streamlit/secrets.toml
+
+# Virtual environments
+venv/
+.venv/
+
+# Python
+__pycache__/
+*.py[cod]
+
+# macOS
+.DS_Store
+
+# VS Code / IDE
+.vscode/
+.idea/
+
+# Logs / temporary files
+*.log
+*.tmp
+*.swp
+
+# Large source catalog files
+data/*.pdf
+
+# Raw Keeneland API download
+data/keeneland_sale_data_132.json
+data/keeneland_september_2026_horses_v0.json

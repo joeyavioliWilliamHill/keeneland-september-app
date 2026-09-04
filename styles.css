@@ -1,0 +1,648 @@
+/* =======================================================
+   WEST POINT THOROUGHBREDS
+======================================================= */
+
+:root{
+    --wpt-green:#15392F;
+    --wpt-green-light:#214C40;
+    --wpt-gold:#B79A5B;
+    --wpt-cream:#F7F5F1;
+    --wpt-card:#FCFBF9;
+    --wpt-border:#E6E0D6;
+    --wpt-text:#1F2937;
+}
+
+
+/* Entire App */
+
+.stApp{
+    background:var(--wpt-cream);
+}
+
+
+/* Sidebar */
+
+section[data-testid="stSidebar"]{
+    background:var(--wpt-green);
+}
+
+section[data-testid="stSidebar"] *{
+    color:white;
+}
+
+
+/* Cards */
+
+div[data-testid="stVerticalBlockBorderWrapper"]{
+
+    background:var(--wpt-card);
+
+    border:1px solid var(--wpt-border);
+
+    border-radius:14px;
+
+    padding:10px;
+
+}
+
+
+/* Metrics */
+
+div[data-testid="metric-container"]{
+
+    background:white;
+
+    border-radius:10px;
+
+    border:1px solid var(--wpt-border);
+
+    padding:12px;
+
+}
+
+
+/* Tabs */
+
+button[data-baseweb="tab"]{
+
+    font-weight:600;
+
+}
+
+button[aria-selected="true"]{
+
+    color:var(--wpt-green);
+
+    border-bottom:3px solid var(--wpt-gold);
+
+}
+
+
+/* Buttons */
+
+.stButton button{
+
+    background:var(--wpt-green);
+
+    color:white;
+
+    border-radius:8px;
+
+    border:none;
+
+}
+
+.stButton button:hover{
+
+    background:var(--wpt-green-light);
+
+}
+
+
+/* Headers */
+
+h1,h2,h3{
+
+    color:var(--wpt-green);
+
+}
+
+
+/* Horizontal Rules */
+
+hr{
+
+    border-color:var(--wpt-border);
+
+}
+
+
+/* =======================================================
+   SIDEBAR
+======================================================= */
+
+section[data-testid="stSidebar"] {
+    background:
+        linear-gradient(
+            180deg,
+            #102E26 0%,
+            #15392F 55%,
+            #1B463A 100%
+        );
+    border-right: 1px solid rgba(183, 154, 91, 0.35);
+}
+
+section[data-testid="stSidebar"] > div {
+    padding-top: 1rem;
+}
+
+/* Sidebar text */
+
+section[data-testid="stSidebar"] h1,
+section[data-testid="stSidebar"] h2,
+section[data-testid="stSidebar"] h3 {
+    color: #FFFFFF;
+}
+
+section[data-testid="stSidebar"] p,
+section[data-testid="stSidebar"] label,
+section[data-testid="stSidebar"] span {
+    color: rgba(255, 255, 255, 0.88);
+}
+
+/* Sidebar branding block */
+
+.wpt-sidebar-brand {
+    padding: 0.75rem 0 1.35rem 0;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid rgba(183, 154, 91, 0.45);
+}
+
+.wpt-sidebar-eyebrow {
+    color: #D1B779;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    margin-bottom: 0.35rem;
+}
+
+.wpt-sidebar-title {
+    color: #FFFFFF;
+    font-size: 1.45rem;
+    font-weight: 750;
+    line-height: 1.15;
+    margin-bottom: 0.35rem;
+}
+
+.wpt-sidebar-subtitle {
+    color: rgba(255, 255, 255, 0.68);
+    font-size: 0.86rem;
+    line-height: 1.45;
+}
+
+/* Sidebar section headings */
+
+.wpt-sidebar-section {
+    color: #D1B779;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-top: 1.35rem;
+    margin-bottom: 0.65rem;
+}
+
+/* Inputs */
+
+section[data-testid="stSidebar"] div[data-baseweb="select"] > div,
+section[data-testid="stSidebar"] div[data-baseweb="input"] > div {
+    background: rgba(255, 255, 255, 0.96);
+    border: 1px solid rgba(255, 255, 255, 0.20);
+    border-radius: 9px;
+}
+
+section[data-testid="stSidebar"] div[data-baseweb="select"] span,
+section[data-testid="stSidebar"] div[data-baseweb="input"] input {
+    color: #1F2937 !important;
+}
+
+/* Multiselect selected pills */
+
+section[data-testid="stSidebar"] span[data-baseweb="tag"] {
+    background: #D1B779;
+    color: #15392F !important;
+    border-radius: 999px;
+    font-weight: 700;
+}
+
+/* Checkboxes */
+
+section[data-testid="stSidebar"] div[data-testid="stCheckbox"] {
+    padding: 0.15rem 0;
+}
+
+/* Sidebar buttons */
+
+section[data-testid="stSidebar"] .stButton button {
+    background: transparent;
+    color: #FFFFFF;
+    border: 1px solid rgba(209, 183, 121, 0.8);
+    border-radius: 9px;
+    font-weight: 650;
+}
+
+section[data-testid="stSidebar"] .stButton button:hover {
+    background: #D1B779;
+    color: #15392F;
+    border-color: #D1B779;
+}
+
+/* Sidebar caption and result count */
+
+.wpt-sidebar-count {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(209, 183, 121, 0.30);
+    border-radius: 10px;
+    padding: 0.8rem 0.9rem;
+    margin-top: 1rem;
+}
+
+.wpt-sidebar-count strong {
+    color: #D1B779;
+    font-size: 1.15rem;
+}
+
+
+/* =======================================================
+   SIDEBAR REFINEMENTS
+======================================================= */
+
+section[data-testid="stSidebar"] .stTextInput,
+section[data-testid="stSidebar"] .stMultiSelect,
+section[data-testid="stSidebar"] .stSlider,
+section[data-testid="stSidebar"] .stCheckbox {
+    margin-bottom: 0.65rem;
+}
+
+.wpt-sidebar-section {
+    margin-top: 1rem;
+    margin-bottom: 0.45rem;
+}
+
+section[data-testid="stSidebar"] label {
+    font-size: 0.88rem;
+}
+
+section[data-testid="stSidebar"] div[data-baseweb="select"] > div,
+section[data-testid="stSidebar"] div[data-baseweb="input"] > div {
+    min-height: 44px;
+}
+
+.wpt-sidebar-brand {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(183, 154, 91, 0.35);
+    border-radius: 14px;
+    padding: 1rem;
+    margin-bottom: 1.25rem;
+}
+
+.wpt-sidebar-title {
+    color: #FFFFFF;
+    font-size: 1.45rem;
+    font-weight: 750;
+    line-height: 1.15;
+    margin: 0.2rem 0 0.35rem;
+}
+
+.wpt-sidebar-subtitle {
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 0.86rem;
+    line-height: 1.4;
+}
+
+
+/* =======================================================
+   PREMIUM CATALOG CARDS
+======================================================= */
+
+.wpt-horse-image-wrap {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    border-radius: 12px;
+    background: #E9E4DA;
+    margin-bottom: 0.85rem;
+}
+
+.wpt-horse-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+}
+
+.wpt-photo-badge {
+    position: absolute;
+    left: 12px;
+    bottom: 12px;
+    background: rgba(21, 57, 47, 0.92);
+    color: #FFFFFF;
+    border: 1px solid rgba(209, 183, 121, 0.75);
+    border-radius: 999px;
+    padding: 0.28rem 0.65rem;
+    font-size: 0.68rem;
+    font-weight: 750;
+    letter-spacing: 0.08em;
+}
+
+.wpt-photo-placeholder {
+    background:
+        linear-gradient(
+            145deg,
+            #F2EDE4 0%,
+            #DED3C1 100%
+        );
+    border: 1px solid #D3C29F;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.wpt-placeholder-content {
+    text-align: center;
+    color: #15392F;
+}
+
+.wpt-placeholder-icon {
+    font-size: 3rem;
+    margin-bottom: 0.45rem;
+}
+
+.wpt-placeholder-hip {
+    color: #15392F;
+    font-size: 0.85rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+}
+
+.wpt-placeholder-copy {
+    color: #746B5D;
+    font-size: 0.78rem;
+    margin-top: 0.2rem;
+}
+
+.wpt-card-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin: 0.15rem 0 0.8rem;
+}
+
+.wpt-card-badge {
+    background: #F1EBDD;
+    color: #15392F;
+    border: 1px solid #D8C7A4;
+    border-radius: 999px;
+    padding: 0.23rem 0.55rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+}
+
+.wpt-card-heading {
+    min-height: 152px;
+}
+
+.wpt-card-eyebrow {
+    color: #A18348;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.45rem;
+}
+
+.wpt-card-sire {
+    color: #15392F;
+    font-size: 1.35rem;
+    font-weight: 800;
+    line-height: 1.15;
+}
+
+.wpt-card-dam {
+    color: #4B5563;
+    font-size: 1rem;
+    margin-top: 0.25rem;
+    line-height: 1.35;
+}
+
+.wpt-card-meta {
+    color: #6B7280;
+    font-size: 0.8rem;
+    margin-top: 0.65rem;
+}
+
+.wpt-card-dot {
+    color: #B79A5B;
+    padding: 0 0.25rem;
+}
+
+.wpt-card-stat {
+    background: #F8F5EE;
+    border: 1px solid #E2D8C6;
+    border-radius: 10px;
+    padding: 0.7rem;
+    min-height: 78px;
+    margin-bottom: 0.75rem;
+}
+
+.wpt-card-stat-label {
+    color: #756B5B;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.wpt-card-stat-value {
+    color: #15392F;
+    font-size: 1rem;
+    font-weight: 800;
+    margin-top: 0.2rem;
+}
+
+.wpt-pagination-label {
+    text-align: center;
+    padding-top: 0.65rem;
+    color: #4B5563;
+}
+
+/* Slight lift for catalog cards */
+
+div[data-testid="stVerticalBlockBorderWrapper"] {
+    transition:
+        transform 0.15s ease,
+        box-shadow 0.15s ease;
+}
+
+div[data-testid="stVerticalBlockBorderWrapper"]:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 22px rgba(21, 57, 47, 0.10);
+}
+
+
+/* =======================================================
+   WPT AI INSIGHT
+======================================================= */
+
+.wpt-ai-heading {
+    margin: 0.5rem 0 1rem;
+    padding-left: 0.15rem;
+}
+
+.wpt-ai-eyebrow {
+    color: #A18348;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    margin-bottom: 0.25rem;
+}
+
+.wpt-ai-title {
+    color: #15392F;
+    font-size: 1.75rem;
+    font-weight: 800;
+    line-height: 1.15;
+}
+
+.wpt-ai-subtitle {
+    color: #6B7280;
+    font-size: 0.88rem;
+    margin-top: 0.3rem;
+}
+
+.wpt-ai-bullet {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.65rem;
+    background: #F8F5EE;
+    border: 1px solid #E2D8C6;
+    border-radius: 10px;
+    padding: 0.75rem 0.85rem;
+    margin-bottom: 0.55rem;
+    color: #30343F;
+    line-height: 1.55;
+}
+
+.wpt-ai-bullet-mark {
+    color: #B79A5B;
+    font-size: 1.25rem;
+    font-weight: 800;
+    line-height: 1.1;
+}
+
+/* =======================================================
+   HORSE PROFILE HERO
+======================================================= */
+
+.wpt-profile-eyebrow {
+    color: #8E7543;
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 1.25rem;
+}
+
+.wpt-profile-dot {
+    color: #B79A5B;
+    padding: 0 0.45rem;
+}
+
+.wpt-profile-hip {
+    color: #15392F;
+    font-size: 3.2rem;
+    font-weight: 850;
+    line-height: 1;
+    letter-spacing: -0.03em;
+    margin-bottom: 1.4rem;
+}
+
+.wpt-profile-pedigree {
+    color: #252936;
+    line-height: 1.15;
+    margin-bottom: 1rem;
+}
+
+.wpt-profile-sire {
+    display: block;
+    color: #15392F;
+    font-size: 2rem;
+    font-weight: 800;
+}
+
+.wpt-profile-cross {
+    display: block;
+    color: #B79A5B;
+    font-size: 1.15rem;
+    font-weight: 800;
+    margin: 0.28rem 0;
+}
+
+.wpt-profile-dam {
+    display: block;
+    color: #30343F;
+    font-size: 1.65rem;
+    font-weight: 700;
+}
+
+.wpt-profile-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+    margin: 1.15rem 0 1.4rem;
+}
+
+.wpt-profile-tag {
+    display: inline-block;
+    background: #F1EBDD;
+    color: #15392F;
+    border: 1px solid #D8C7A4;
+    border-radius: 999px;
+    padding: 0.36rem 0.75rem;
+    font-size: 0.78rem;
+    font-weight: 750;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.wpt-profile-rule {
+    height: 1px;
+    background: #DDD6CA;
+    margin-bottom: 1.25rem;
+}
+
+
+/* ============================
+   LOGIN
+============================ */
+
+.wpt-login-brand {
+    text-align: center;
+    margin-top: 70px;
+    margin-bottom: 30px;
+}
+
+.wpt-login-eyebrow {
+    color: #A18249;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: .18em;
+}
+
+.wpt-login-title {
+    color: #15392F;
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-top: .4rem;
+}
+
+.wpt-login-subtitle {
+    color: #7D7D7D;
+    margin-top: .35rem;
+}
+
+
+section[data-testid="stSidebar"] input {
+    color: #1F2937 !important;
+    -webkit-text-fill-color: #1F2937 !important;
+    caret-color: #1F2937 !important;
+}
+
+/* Keep placeholder text gray */
+section[data-testid="stSidebar"] input::placeholder {
+    color: #7C828D !important;
+    -webkit-text-fill-color: #7C828D !important;
+    opacity: 1;
+}
