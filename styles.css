@@ -3,12 +3,12 @@
 ======================================================= */
 
 :root{
-    --wpt-green:#15392F;
-    --wpt-green-light:#214C40;
-    --wpt-gold:#B79A5B;
-    --wpt-cream:#F7F5F1;
-    --wpt-card:#FCFBF9;
-    --wpt-border:#E6E0D6;
+    --wpt-green:#000000;
+    --wpt-green-light:#171717;
+    --wpt-gold:#F3BD18;
+    --wpt-cream:#F7F7F5;
+    --wpt-card:#FFFFFF;
+    --wpt-border:#E5E5E5;
     --wpt-text:#1F2937;
 }
 
@@ -125,11 +125,11 @@ section[data-testid="stSidebar"] {
     background:
         linear-gradient(
             180deg,
-            #102E26 0%,
-            #15392F 55%,
-            #1B463A 100%
+            #000000 0%,
+            #000000 55%,
+            #171717 100%
         );
-    border-right: 1px solid rgba(183, 154, 91, 0.35);
+    border-right: 1px solid rgba(243, 189, 24, 0.35);
 }
 
 section[data-testid="stSidebar"] > div {
@@ -155,11 +155,11 @@ section[data-testid="stSidebar"] span {
 .wpt-sidebar-brand {
     padding: 0.75rem 0 1.35rem 0;
     margin-bottom: 1rem;
-    border-bottom: 1px solid rgba(183, 154, 91, 0.45);
+    border-bottom: 1px solid rgba(243, 189, 24, 0.45);
 }
 
 .wpt-sidebar-eyebrow {
-    color: #D1B779;
+    color: #F3BD18;
     font-size: 0.72rem;
     font-weight: 700;
     letter-spacing: 0.16em;
@@ -184,7 +184,7 @@ section[data-testid="stSidebar"] span {
 /* Sidebar section headings */
 
 .wpt-sidebar-section {
-    color: #D1B779;
+    color: #F3BD18;
     font-size: 0.72rem;
     font-weight: 700;
     letter-spacing: 0.12em;
@@ -210,8 +210,8 @@ section[data-testid="stSidebar"] div[data-baseweb="input"] input {
 /* Multiselect selected pills */
 
 section[data-testid="stSidebar"] span[data-baseweb="tag"] {
-    background: #D1B779;
-    color: #15392F !important;
+    background: #F3BD18;
+    color: #000000 !important;
     border-radius: 999px;
     font-weight: 700;
 }
@@ -227,29 +227,29 @@ section[data-testid="stSidebar"] div[data-testid="stCheckbox"] {
 section[data-testid="stSidebar"] .stButton button {
     background: transparent;
     color: #FFFFFF;
-    border: 1px solid rgba(209, 183, 121, 0.8);
+    border: 1px solid rgba(243, 189, 24, 0.80);
     border-radius: 9px;
     font-weight: 650;
 }
 
 section[data-testid="stSidebar"] .stButton button:hover {
-    background: #D1B779;
-    color: #15392F;
-    border-color: #D1B779;
+    background: #F3BD18;
+    color: #000000;
+    border-color: #F3BD18;
 }
 
 /* Sidebar caption and result count */
 
 .wpt-sidebar-count {
     background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(209, 183, 121, 0.30);
+    border: 1px solid rgba(243, 189, 24, 0.30);
     border-radius: 10px;
     padding: 0.8rem 0.9rem;
     margin-top: 1rem;
 }
 
 .wpt-sidebar-count strong {
-    color: #D1B779;
+    color: #F3BD18;
     font-size: 1.15rem;
 }
 
@@ -281,7 +281,7 @@ section[data-testid="stSidebar"] div[data-baseweb="input"] > div {
 
 .wpt-sidebar-brand {
     background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(183, 154, 91, 0.35);
+    border: 1px solid rgba(243, 189, 24, 0.35);
     border-radius: 14px;
     padding: 1rem;
     margin-bottom: 1.25rem;
@@ -311,7 +311,7 @@ section[data-testid="stSidebar"] div[data-baseweb="input"] > div {
     width: 100%;
     overflow: hidden;
     border-radius: 12px;
-    background: #E9E4DA;
+    background: #EEEEEA;
     margin-bottom: 0.85rem;
 }
 
@@ -327,9 +327,9 @@ section[data-testid="stSidebar"] div[data-baseweb="input"] > div {
     position: absolute;
     left: 12px;
     bottom: 12px;
-    background: rgba(21, 57, 47, 0.92);
+    background: rgba(0, 0, 0, 0.90);
     color: #FFFFFF;
-    border: 1px solid rgba(209, 183, 121, 0.75);
+    border: 1px solid rgba(243, 189, 24, 0.75);
     border-radius: 999px;
     padding: 0.28rem 0.65rem;
     font-size: 0.68rem;
@@ -341,10 +341,10 @@ section[data-testid="stSidebar"] div[data-baseweb="input"] > div {
     background:
         linear-gradient(
             145deg,
-            #F2EDE4 0%,
-            #DED3C1 100%
+            #F5F5F2 0%,
+            #E3E3DE 100%
         );
-    border: 1px solid #D3C29F;
+    border: 1px solid #D6D6CF;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -352,7 +352,7 @@ section[data-testid="stSidebar"] div[data-baseweb="input"] > div {
 
 .wpt-placeholder-content {
     text-align: center;
-    color: #15392F;
+    color: #000000;
 }
 
 .wpt-placeholder-icon {
@@ -361,14 +361,14 @@ section[data-testid="stSidebar"] div[data-baseweb="input"] > div {
 }
 
 .wpt-placeholder-hip {
-    color: #15392F;
+    color: #000000;
     font-size: 0.85rem;
     font-weight: 800;
     letter-spacing: 0.12em;
 }
 
 .wpt-placeholder-copy {
-    color: #746B5D;
+    color: #6B7280;
     font-size: 0.78rem;
     margin-top: 0.2rem;
 }
@@ -381,9 +381,9 @@ section[data-testid="stSidebar"] div[data-baseweb="input"] > div {
 }
 
 .wpt-card-badge {
-    background: #F1EBDD;
-    color: #15392F;
-    border: 1px solid #D8C7A4;
+    background: #FFF8DD;
+    color: #000000;
+    border: 1px solid #E7CF73;
     border-radius: 999px;
     padding: 0.23rem 0.55rem;
     font-size: 0.72rem;
@@ -395,7 +395,7 @@ section[data-testid="stSidebar"] div[data-baseweb="input"] > div {
 }
 
 .wpt-card-eyebrow {
-    color: #A18348;
+    color: #8A6A0D;
     font-size: 0.75rem;
     font-weight: 800;
     letter-spacing: 0.1em;
@@ -403,7 +403,7 @@ section[data-testid="stSidebar"] div[data-baseweb="input"] > div {
 }
 
 .wpt-card-sire {
-    color: #15392F;
+    color: #000000;
     font-size: 1.35rem;
     font-weight: 800;
     line-height: 1.15;
@@ -423,13 +423,13 @@ section[data-testid="stSidebar"] div[data-baseweb="input"] > div {
 }
 
 .wpt-card-dot {
-    color: #B79A5B;
+    color: #F3BD18;
     padding: 0 0.25rem;
 }
 
 .wpt-card-stat {
-    background: #F8F5EE;
-    border: 1px solid #E2D8C6;
+    background: #FAFAF7;
+    border: 1px solid #E5E5DF;
     border-radius: 10px;
     padding: 0.7rem;
     min-height: 78px;
@@ -437,7 +437,7 @@ section[data-testid="stSidebar"] div[data-baseweb="input"] > div {
 }
 
 .wpt-card-stat-label {
-    color: #756B5B;
+    color: #6B7280;
     font-size: 0.7rem;
     font-weight: 700;
     letter-spacing: 0.05em;
@@ -445,7 +445,7 @@ section[data-testid="stSidebar"] div[data-baseweb="input"] > div {
 }
 
 .wpt-card-stat-value {
-    color: #15392F;
+    color: #000000;
     font-size: 1rem;
     font-weight: 800;
     margin-top: 0.2rem;
@@ -467,7 +467,7 @@ div[data-testid="stVerticalBlockBorderWrapper"] {
 
 div[data-testid="stVerticalBlockBorderWrapper"]:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 22px rgba(21, 57, 47, 0.10);
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.10);
 }
 
 
@@ -481,7 +481,7 @@ div[data-testid="stVerticalBlockBorderWrapper"]:hover {
 }
 
 .wpt-ai-eyebrow {
-    color: #A18348;
+    color: #8A6A0D;
     font-size: 0.72rem;
     font-weight: 800;
     letter-spacing: 0.14em;
@@ -490,7 +490,7 @@ div[data-testid="stVerticalBlockBorderWrapper"]:hover {
 }
 
 .wpt-ai-title {
-    color: #15392F;
+    color: #000000;
     font-size: 1.75rem;
     font-weight: 800;
     line-height: 1.15;
@@ -506,8 +506,8 @@ div[data-testid="stVerticalBlockBorderWrapper"]:hover {
     display: flex;
     align-items: flex-start;
     gap: 0.65rem;
-    background: #F8F5EE;
-    border: 1px solid #E2D8C6;
+    background: #FAFAF7;
+    border: 1px solid #E5E5DF;
     border-radius: 10px;
     padding: 0.75rem 0.85rem;
     margin-bottom: 0.55rem;
@@ -516,7 +516,7 @@ div[data-testid="stVerticalBlockBorderWrapper"]:hover {
 }
 
 .wpt-ai-bullet-mark {
-    color: #B79A5B;
+    color: #F3BD18;
     font-size: 1.25rem;
     font-weight: 800;
     line-height: 1.1;
@@ -527,7 +527,7 @@ div[data-testid="stVerticalBlockBorderWrapper"]:hover {
 ======================================================= */
 
 .wpt-profile-eyebrow {
-    color: #8E7543;
+    color: #8A6A0D;
     font-size: 0.78rem;
     font-weight: 800;
     letter-spacing: 0.12em;
@@ -536,12 +536,12 @@ div[data-testid="stVerticalBlockBorderWrapper"]:hover {
 }
 
 .wpt-profile-dot {
-    color: #B79A5B;
+    color: #F3BD18;
     padding: 0 0.45rem;
 }
 
 .wpt-profile-hip {
-    color: #15392F;
+    color: #000000;
     font-size: 3.2rem;
     font-weight: 850;
     line-height: 1;
@@ -557,14 +557,14 @@ div[data-testid="stVerticalBlockBorderWrapper"]:hover {
 
 .wpt-profile-sire {
     display: block;
-    color: #15392F;
+    color: #000000;
     font-size: 2rem;
     font-weight: 800;
 }
 
 .wpt-profile-cross {
     display: block;
-    color: #B79A5B;
+    color: #F3BD18;
     font-size: 1.15rem;
     font-weight: 800;
     margin: 0.28rem 0;
@@ -586,9 +586,9 @@ div[data-testid="stVerticalBlockBorderWrapper"]:hover {
 
 .wpt-profile-tag {
     display: inline-block;
-    background: #F1EBDD;
-    color: #15392F;
-    border: 1px solid #D8C7A4;
+    background: #FFF8DD;
+    color: #000000;
+    border: 1px solid #E7CF73;
     border-radius: 999px;
     padding: 0.36rem 0.75rem;
     font-size: 0.78rem;
@@ -599,7 +599,7 @@ div[data-testid="stVerticalBlockBorderWrapper"]:hover {
 
 .wpt-profile-rule {
     height: 1px;
-    background: #DDD6CA;
+    background: #E1E1DC;
     margin-bottom: 1.25rem;
 }
 
@@ -615,14 +615,14 @@ div[data-testid="stVerticalBlockBorderWrapper"]:hover {
 }
 
 .wpt-login-eyebrow {
-    color: #A18249;
+    color: #8A6A0D;
     font-size: 0.75rem;
     font-weight: 700;
     letter-spacing: .18em;
 }
 
 .wpt-login-title {
-    color: #15392F;
+    color: #000000;
     font-size: 2.5rem;
     font-weight: 800;
     margin-top: .4rem;
@@ -646,3 +646,159 @@ section[data-testid="stSidebar"] input::placeholder {
     -webkit-text-fill-color: #7C828D !important;
     opacity: 1;
 }
+
+/* =======================================================
+   WPT 2026 BRAND OVERRIDES
+   Black #000000 · Gold #F3BD18
+======================================================= */
+
+:root {
+    --wpt-black: #000000;
+    --wpt-gold: #F3BD18;
+    --wpt-gold-soft: #FFF8DD;
+    --wpt-background: #F7F7F5;
+    --wpt-border: #E5E5E5;
+}
+
+.stApp { background: var(--wpt-background); }
+
+section[data-testid="stSidebar"] {
+    background: linear-gradient(180deg,#000000 0%,#0B0B0B 58%,#171717 100%);
+    border-right: 1px solid rgba(243,189,24,.35);
+}
+
+.wpt-sidebar-eyebrow,
+.wpt-sidebar-section,
+.wpt-sidebar-count strong { color: var(--wpt-gold); }
+
+section[data-testid="stSidebar"] span[data-baseweb="tag"] {
+    background: var(--wpt-gold);
+    color: var(--wpt-black) !important;
+}
+
+section[data-testid="stSidebar"] .stButton button {
+    background: transparent;
+    color: #FFFFFF;
+    border: 1px solid rgba(243,189,24,.80);
+}
+
+section[data-testid="stSidebar"] .stButton button:hover {
+    background: var(--wpt-gold);
+    color: var(--wpt-black);
+    border-color: var(--wpt-gold);
+}
+
+.stButton button {
+    background: var(--wpt-black);
+    color: #FFFFFF;
+    border: 1px solid var(--wpt-black);
+    font-weight: 700;
+}
+
+.stButton button:hover {
+    background: var(--wpt-gold);
+    color: var(--wpt-black);
+    border-color: var(--wpt-gold);
+}
+
+.stButton button[kind="primary"],
+.stButton button[data-testid="stBaseButton-primary"] {
+    background: var(--wpt-black);
+    color: var(--wpt-gold);
+}
+
+h1,h2,h3 { color: var(--wpt-black); }
+
+button[aria-selected="true"] {
+    color: var(--wpt-black);
+    border-bottom: 3px solid var(--wpt-gold);
+}
+
+.wpt-photo-badge {
+    background: rgba(0,0,0,.90);
+    border-color: rgba(243,189,24,.80);
+}
+
+.wpt-placeholder-content,
+.wpt-placeholder-hip,
+.wpt-card-sire,
+.wpt-card-stat-value,
+.wpt-profile-hip,
+.wpt-profile-sire,
+.wpt-ai-title,
+.wpt-login-title { color: var(--wpt-black); }
+
+.wpt-placeholder-icon {
+    color: var(--wpt-gold);
+    font-size: 2.65rem;
+}
+
+.wpt-card-badge,
+.wpt-profile-tag {
+    background: var(--wpt-gold-soft);
+    color: var(--wpt-black);
+    border-color: #E7CF73;
+}
+
+.wpt-card-eyebrow,
+.wpt-card-dot,
+.wpt-ai-eyebrow,
+.wpt-ai-bullet-mark,
+.wpt-profile-eyebrow,
+.wpt-profile-dot,
+.wpt-profile-cross { color: #8A6A0D; }
+
+div[data-testid="stVerticalBlockBorderWrapper"]:hover {
+    box-shadow: 0 8px 22px rgba(0,0,0,.10);
+}
+
+@media (max-width: 900px) {
+    .wpt-profile-hip { font-size: 2.55rem; }
+    .wpt-profile-sire { font-size: 1.65rem; }
+    .wpt-profile-dam { font-size: 1.35rem; }
+    .wpt-card-heading { min-height: auto; }
+}
+
+/* =======================================================
+   FIXED PROFILE NAVIGATION
+   The keyed Streamlit container from app.py stays visible
+   while the user scrolls through a horse profile.
+======================================================= */
+
+.st-key-profile_sticky_nav,
+div[class*="st-key-profile_sticky_nav"] {
+    position: fixed !important;
+    top: 3.6rem !important;
+    left: 3.5rem !important;
+    right: 3.5rem !important;
+    z-index: 10000 !important;
+
+    background: rgba(247, 247, 245, 0.985) !important;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+
+    padding: 0.7rem 0.9rem 0.75rem 0.9rem !important;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 0 0 14px 14px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+/* Reserve the vertical space the fixed bar no longer occupies. */
+.wpt-profile-nav-spacer {
+    height: 8.9rem;
+}
+
+/* Keep the fixed navigation comfortable on narrower screens. */
+@media (max-width: 1000px) {
+    .st-key-profile_sticky_nav,
+    div[class*="st-key-profile_sticky_nav"] {
+        left: 1rem !important;
+        right: 1rem !important;
+        top: 3.25rem !important;
+    }
+
+    .wpt-profile-nav-spacer {
+        height: 10rem;
+    }
+}
+

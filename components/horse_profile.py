@@ -110,78 +110,96 @@ def extract_money(value: str | None) -> str | None:
     return match.group(0).replace(" ", "") if match else None
 
 
+def format_profile_sale_date(
+    value: Any,
+) -> str:
+    """Format the current Keeneland sale date for profile display."""
+    if value is None:
+        return "—"
+
+    try:
+        if pd.isna(value):
+            return "—"
+    except (TypeError, ValueError):
+        pass
+
+    try:
+        timestamp = pd.Timestamp(value)
+        return timestamp.strftime("%A, %B %-d")
+    except Exception:
+        return display_value(value, "—")
+
+
 def parse_sale_history_entry(value: str) -> dict[str, str | None]:
-    """Parse one catalog sale-history segment into readable fields."""
+    """
+    Parse one catalog sale-history segment.
+
+    Auction Edge sale codes begin with a two-digit historical year,
+    e.g. 25KEESEP = 2025 Keeneland September. Only 00-26 are
+    expanded to 2000-2026 for this 2026 catalog.
+    """
     text = str(value).strip()
 
     sale_match = re.search(
-        r"\b(?P<sale>\d{2}[A-Z]{3,10})\b",
+        r"\b(?P<yy>\d{2})(?P<suffix>[A-Z]{3,10})\b",
         text,
         flags=re.IGNORECASE,
     )
-
     price_match = re.search(
         r"(?P<rna>\()?\$(?P<price>[\d,]+)\)?",
         text,
     )
-
     consignor_match = re.search(
-        r"Consignor:\s*(?P<consignor>[^;]+)",
+        r"Consignor:\s*(?P<consignor>[^;•]+)",
         text,
         flags=re.IGNORECASE,
     )
-
     buyer_match = re.search(
-        r"Buyer:\s*(?P<buyer>[^;]+)",
+        r"Buyer:\s*(?P<buyer>[^;•]+)",
         text,
         flags=re.IGNORECASE,
     )
-
     for_match = re.search(
-        r"—For:\s*(?P<for_party>.+)$",
+        r"—\s*For:\s*(?P<for_party>.+)$",
         text,
         flags=re.IGNORECASE,
     )
 
-    sale_code = sale_match.group("sale") if sale_match else None
+    sale_code = None
     sale_year = None
     sale_name = None
 
-    if sale_code:
-        year_prefix = sale_code[:2]
-        code_suffix = sale_code[2:].upper()
-        sale_year = f"20{year_prefix}"
+    if sale_match:
+        year_prefix = int(sale_match.group("yy"))
+        code_suffix = sale_match.group("suffix").upper()
 
-        sale_names = {
-            "KEENOV": "Keeneland November",
-            "KEESEP": "Keeneland September",
-            "KEEJAN": "Keeneland January",
-            "FTKOCT": "Fasig-Tipton October",
-            "FTKNOV": "Fasig-Tipton November",
-            "FTKHRA": "Fasig-Tipton Horses of Racing Age",
-            "FTNMIX": "Fasig-Tipton Midlantic Mixed",
-            "FTSAUG": "Fasig-Tipton Saratoga",
-            "SARAUG": "Saratoga August",
-            "OBSAPR": "OBS April",
-            "OBSOPN": "OBS June / Open",
-            "OBSMAR": "OBS March",
-            "EASMAY": "Fasig-Tipton Midlantic May",
-            "FTDFEB": "Fasig-Tipton Digital February",
-            "CLAIM": "Claim",
-        }
+        if 0 <= year_prefix <= 26:
+            sale_year = str(2000 + year_prefix)
+            sale_code = f"{year_prefix:02d}{code_suffix}"
 
-        sale_name = sale_names.get(code_suffix, sale_code)
+            sale_names = {
+                "KEENOV": "Keeneland November",
+                "KEESEP": "Keeneland September",
+                "KEEJAN": "Keeneland January",
+                "FTKOCT": "Fasig-Tipton October",
+                "FTKNOV": "Fasig-Tipton November",
+                "FTKHRA": "Fasig-Tipton Horses of Racing Age",
+                "FTNMIX": "Fasig-Tipton Midlantic Mixed",
+                "FTSAUG": "Fasig-Tipton Saratoga",
+                "SARAUG": "Saratoga August",
+                "OBSAPR": "OBS April",
+                "OBSOPN": "OBS June / Open",
+                "OBSMAR": "OBS March",
+                "EASMAY": "Fasig-Tipton Midlantic May",
+                "FTFMAR": "Fasig-Tipton Florida March",
+                "FTDFEB": "Fasig-Tipton Digital February",
+                "CLAIM": "Claim",
+            }
+            sale_name = sale_names.get(code_suffix, code_suffix)
 
     price = f"${price_match.group('price')}" if price_match else None
-
-    is_rna = bool(
-        price_match and price_match.group("rna")
-    ) or bool(
-        re.search(
-            r"\(RNA\)",
-            text,
-            flags=re.IGNORECASE,
-        )
+    is_rna = bool(price_match and price_match.group("rna")) or bool(
+        re.search(r"\(RNA\)", text, flags=re.IGNORECASE)
     )
 
     return {
@@ -190,21 +208,9 @@ def parse_sale_history_entry(value: str) -> dict[str, str | None]:
         "sale_year": sale_year,
         "price": price,
         "rna": "RNA" if is_rna else None,
-        "consignor": (
-            consignor_match.group("consignor").strip()
-            if consignor_match
-            else None
-        ),
-        "buyer": (
-            buyer_match.group("buyer").strip()
-            if buyer_match
-            else None
-        ),
-        "for_party": (
-            for_match.group("for_party").strip()
-            if for_match
-            else None
-        ),
+        "consignor": consignor_match.group("consignor").strip() if consignor_match else None,
+        "buyer": buyer_match.group("buyer").strip() if buyer_match else None,
+        "for_party": for_match.group("for_party").strip() if for_match else None,
         "raw": text,
     }
 
@@ -522,7 +528,7 @@ def render_first_dam_record(record: Any) -> None:
                             {safe_heading}
                         </div>
                         <div style="
-                            color:#15392F;
+                            color:#000000;
                             font-size:0.94rem;
                             font-weight:800;
                             white-space:nowrap;
@@ -539,43 +545,42 @@ def render_first_dam_record(record: Any) -> None:
 
 def parse_produce_record(record: str) -> dict[str, Any]:
     """
-    Parse one first-dam produce record while preserving named offspring.
+    Parse one first-dam produce record while preserving named offspring,
+    including Auction Edge rows such as:
+        17-20-Here Comes Josie, m., by Flatter...
     """
     record = str(record).strip()
+    year = None
+    body = record
 
     year_match = re.match(
         r"^(?P<year>\d{2})-(?P<body>.+)$",
-        record,
+        body,
         flags=re.IGNORECASE,
     )
-
-    year = None
-    body = record
 
     if year_match:
         year = f"20{year_match.group('year')}"
         body = year_match.group("body").strip()
 
-        body = re.sub(
-            r"^\d{2}-(?=(?:c|f|g|h|m|r|b|dkb/br\.?|ch\.?),)",
-            "",
-            body,
-            flags=re.IGNORECASE,
-        )
+    # Auction Edge can insert a second two-digit metadata token
+    # after the foaling year. It is not part of the offspring name.
+    body = re.sub(
+        r"^\d{2}-(?=[A-Za-z])",
+        "",
+        body,
+        count=1,
+    )
 
     sex_pattern = r"(?:c|f|g|h|m|r|b|dkb/br\.?|ch\.?)"
 
     named_match = re.match(
-        rf"^(?P<name>.+?),\s*"
-        rf"(?P<sex>{sex_pattern}),?\s*"
-        rf"by\s+(?P<sire>[^,]+)",
+        rf"^(?P<name>.+?),\s*(?P<sex>{sex_pattern})\.?,?\s*by\s+(?P<sire>[^,]+)",
         body,
         flags=re.IGNORECASE,
     )
-
     unnamed_match = re.match(
-        rf"^(?P<sex>{sex_pattern}),?\s*"
-        rf"by\s+(?P<sire>[^,]+)",
+        rf"^(?P<sex>{sex_pattern})\.?,?\s*by\s+(?P<sire>[^,]+)",
         body,
         flags=re.IGNORECASE,
     )
@@ -586,35 +591,17 @@ def parse_produce_record(record: str) -> dict[str, Any]:
 
     if named_match:
         candidate_name = named_match.group("name").strip(" ,.-")
-
-        if not re.fullmatch(
-            sex_pattern,
-            candidate_name,
-            flags=re.IGNORECASE,
-        ):
-            name = candidate_name
-
-        sex = named_match.group("sex").strip()
+        name = candidate_name or None
+        sex = named_match.group("sex").strip(" .")
         sire = named_match.group("sire").strip()
-
     elif unnamed_match:
-        sex = unnamed_match.group("sex").strip()
+        sex = unnamed_match.group("sex").strip(" .")
         sire = unnamed_match.group("sire").strip()
 
-    starts_match = re.search(
-        r"\b(\d+)\s+sts?\b",
-        record,
-        flags=re.IGNORECASE,
-    )
-
-    wins_match = re.search(
-        r"\b(\d+)\s+wins?\b",
-        record,
-        flags=re.IGNORECASE,
-    )
+    starts_match = re.search(r"\b(\d+)\s+sts?\b", record, flags=re.IGNORECASE)
+    wins_match = re.search(r"\b(\d+)\s+wins?\b", record, flags=re.IGNORECASE)
 
     earnings_match = None
-
     if starts_match or wins_match:
         race_record_text = re.split(
             r"\s+\d{2}[A-Z]{3,}\b",
@@ -622,23 +609,10 @@ def parse_produce_record(record: str) -> dict[str, Any]:
             maxsplit=1,
             flags=re.IGNORECASE,
         )[0]
+        earnings_match = re.search(r"\$([\d,]+)", race_record_text)
 
-        earnings_match = re.search(
-            r"\$([\d,]+)",
-            race_record_text,
-        )
-
-    cpi_match = re.search(
-        r"\[([\d.]+)\s*CPI\]",
-        record,
-        flags=re.IGNORECASE,
-    )
-
-    equibase_match = re.search(
-        r"\(\s*E\s+(\d+)\s*\)",
-        record,
-        flags=re.IGNORECASE,
-    )
+    cpi_match = re.search(r"\[([\d.]+)\s*CPI\]", record, flags=re.IGNORECASE)
+    equibase_match = re.search(r"\(\s*E\s+(\d+)\s*\)", record, flags=re.IGNORECASE)
 
     thorograph_match = re.search(
         r"ThoroGraph\s+"
@@ -650,56 +624,44 @@ def parse_produce_record(record: str) -> dict[str, Any]:
         flags=re.IGNORECASE,
     )
 
-    sale_match = re.search(
-        r"\b(\d{2}[A-Z]{3,})\s+\$([\d,]+)",
-        record,
-        flags=re.IGNORECASE,
-    )
+    sale_history = []
+    for segment in split_bullet_segments(record):
+        parsed_sale = parse_sale_history_entry(segment)
+        if parsed_sale.get("sale_code"):
+            sale_history.append(parsed_sale)
 
     consignor_match = re.search(
-        r"Consignor:\s*([^;]+)",
+        r"Consignor:\s*([^;•]+)",
         record,
         flags=re.IGNORECASE,
     )
-
     buyer_match = re.search(
-        r"Buyer:\s*([^;]+)",
+        r"Buyer:\s*([^;•]+)",
         record,
         flags=re.IGNORECASE,
     )
-
-    pedigree_match = re.search(
-        r"\{([^}]+)\}\s*$",
-        record,
-    )
+    pedigree_match = re.search(r"\{([^}]+)\}\s*$", record)
 
     status = None
-
     if re.search(r"\bUnraced\b", record, flags=re.IGNORECASE):
         status = "Unraced"
     elif starts_match:
         status = "Raced"
 
     performance_text = None
-
     if cpi_match:
         after_cpi = record[cpi_match.end():]
         performance_end = len(after_cpi)
-
         thorograph_index = re.search(
             r"\bThoroGraph\b",
             after_cpi,
             flags=re.IGNORECASE,
         )
-
         if thorograph_index:
             performance_end = thorograph_index.start()
+        performance_text = after_cpi[:performance_end].strip(" ,;-") or None
 
-        performance_text = (
-            after_cpi[:performance_end]
-            .strip(" ,;-")
-            or None
-        )
+    first_sale = sale_history[0] if sale_history else {}
 
     return {
         "year": year,
@@ -719,8 +681,12 @@ def parse_produce_record(record: str) -> dict[str, Any]:
             "4yo": thorograph_match.group(3).strip() if thorograph_match else None,
             "5yo+": thorograph_match.group(4).strip() if thorograph_match else None,
         },
-        "sale_code": sale_match.group(1) if sale_match else None,
-        "sale_price": f"${sale_match.group(2)}" if sale_match else None,
+        "sale_code": first_sale.get("sale_code"),
+        "sale_name": first_sale.get("sale_name"),
+        "sale_year": first_sale.get("sale_year"),
+        "sale_price": first_sale.get("price"),
+        "sale_rna": first_sale.get("rna"),
+        "sale_history": sale_history,
         "consignor": consignor_match.group(1).strip() if consignor_match else None,
         "buyer": buyer_match.group(1).strip() if buyer_match else None,
         "pedigree_note": pedigree_match.group(1).strip() if pedigree_match else None,
@@ -1045,42 +1011,42 @@ def render_produce_card(
                         display,
                     )
 
-        if (
-            parsed["sale_code"]
-            or parsed["sale_price"]
-            or parsed["consignor"]
-            or parsed["buyer"]
-        ):
-            st.markdown(
-                "##### Sale History"
-            )
+        if parsed.get("sale_history"):
+            st.markdown("##### Sale History")
 
-            sale_parts = []
-
-            if parsed["sale_code"]:
-                sale_parts.append(
-                    parsed["sale_code"]
+            for sale in parsed["sale_history"]:
+                sale_name = (
+                    sale.get("sale_name")
+                    or sale.get("sale_code")
+                    or "Sale"
                 )
+                sale_year = sale.get("sale_year")
+                heading = " · ".join(
+                    value
+                    for value in [sale_year, sale_name]
+                    if value
+                ) or "Sale"
 
-            if parsed["sale_price"]:
-                sale_parts.append(
-                    parsed["sale_price"]
-                )
+                price_text = sale.get("price") or "Price not listed"
+                if sale.get("rna"):
+                    price_text += " · RNA"
 
-            if sale_parts:
                 st.markdown(
-                    f"**{' · '.join(sale_parts)}**"
+                    f"**{heading} · {price_text}**"
                 )
 
-            if parsed["consignor"]:
-                st.caption(
-                    f"Consignor: {parsed['consignor']}"
-                )
-
-            if parsed["buyer"]:
-                st.caption(
-                    f"Buyer: {parsed['buyer']}"
-                )
+                if sale.get("consignor"):
+                    st.caption(
+                        f"Consignor: {sale['consignor']}"
+                    )
+                if sale.get("buyer"):
+                    st.caption(
+                        f"Buyer: {sale['buyer']}"
+                    )
+                if sale.get("for_party"):
+                    st.caption(
+                        f"For: {sale['for_party']}"
+                    )
 
         if parsed["pedigree_note"]:
             st.caption(
@@ -1307,7 +1273,7 @@ def render_ai_summary_panel(horse: pd.Series) -> None:
             )
 
     st.caption(
-        "Generated from the supplied Fasig-Tipton catalog data. "
+        "Generated from the supplied Keeneland and catalog research data. "
         "This summary does not predict racing performance or sale value."
     )
 
@@ -1469,7 +1435,7 @@ def render_catalog_pdf_link(pdf_url: Any) -> None:
         box-sizing:border-box;
         margin-top:0.85rem;
         padding:0.82rem 1rem;
-        background-color:#15392F;
+        background-color:#000000;
         color:white;
         text-decoration:none;
         border-radius:8px;
@@ -1521,7 +1487,7 @@ def render_sale_result_panel(horse: pd.Series) -> None:
                 display:inline-block;
                 margin-top:0.4rem;
                 margin-bottom:0.75rem;
-                background:#15392F;
+                background:#000000;
                 color:#FFFFFF;
                 border-radius:999px;
                 padding:0.48rem 0.9rem;
@@ -1551,7 +1517,7 @@ def render_sale_result_panel(horse: pd.Series) -> None:
                 margin-bottom:0.8rem;
             ">
                 <div style="
-                    color:#15392F;
+                    color:#000000;
                     font-size:0.78rem;
                     font-weight:800;
                     letter-spacing:0.06em;
@@ -1561,7 +1527,7 @@ def render_sale_result_panel(horse: pd.Series) -> None:
                     Sale Result
                 </div>
                 <div style="
-                    color:#15392F;
+                    color:#000000;
                     font-size:1.3rem;
                     font-weight:800;
                     margin-bottom:0.25rem;
@@ -1655,12 +1621,6 @@ def render_sale_result_panel(horse: pd.Series) -> None:
 def render_horse_profile(horse: pd.Series) -> None:
     hip_number = int(horse["hip_number"])
 
-    if st.button("← Back to catalog"):
-        st.session_state["page"] = "catalog"
-        st.rerun()
-
-    st.divider()
-
     image_column, summary_column = st.columns(
         [1.2, 1],
         gap="large",
@@ -1695,6 +1655,10 @@ def render_horse_profile(horse: pd.Series) -> None:
             "—",
         )
 
+        sale_date = format_profile_sale_date(
+            horse.get("sale_date")
+        )
+
         sex_label = format_sex(
             horse.get("sex")
         )
@@ -1710,9 +1674,11 @@ def render_horse_profile(horse: pd.Series) -> None:
         st.markdown(
             (
                 '<div class="wpt-profile-eyebrow">'
-                'KEENELAND NEW YORK BREDS'
+                'KEENELAND SEPTEMBER YEARLING SALE'
                 '<span class="wpt-profile-dot">•</span>'
                 f'DAY {html.escape(sale_day)}'
+                '<span class="wpt-profile-dot">•</span>'
+                f'{html.escape(sale_date)}'
                 '</div>'
             ),
             unsafe_allow_html=True,
@@ -1743,7 +1709,7 @@ def render_horse_profile(horse: pd.Series) -> None:
                 '<div style="margin-top:0.9rem; margin-bottom:0.6rem;">'
                 '<span style="'
                 'display:inline-block;'
-                'background:#15392F;'
+                'background:#000000;'
                 'color:#FFFFFF;'
                 'border-radius:999px;'
                 'padding:0.5rem 0.95rem;'
@@ -1762,7 +1728,7 @@ def render_horse_profile(horse: pd.Series) -> None:
         st.markdown(
             (
                 '<div class="wpt-profile-tags">'
-                f'<span class="wpt-profile-tag">Sale Day {html.escape(sale_day)}</span>'
+                f'<span class="wpt-profile-tag">Day {html.escape(sale_day)} · {html.escape(sale_date)}</span>'
                 '</div>'
             ),
             unsafe_allow_html=True,

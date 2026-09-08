@@ -127,7 +127,7 @@ def render_sidebar_brand() -> None:
 
         Keeneland September Yearlings
 
-        2026 partner prospect catalog
+        2026 Keeneland September Yearling Sale
         """,
         unsafe_allow_html=True,
     )
@@ -320,11 +320,21 @@ def render_filters(
         key="filter_true_nicks",
     )
 
+    first_foals_year_options = sorted(
+        pd.to_numeric(
+            horses["first_foals_year"],
+            errors="coerce",
+        )
+        .dropna()
+        .astype(int)
+        .unique()
+        .tolist(),
+        reverse=True,
+    )
+
     first_foals_years = st.sidebar.multiselect(
         "First foals year",
-        options=sorted_options(
-            horses["first_foals_year"]
-        ),
+        options=first_foals_year_options,
         key="filter_first_foals_years",
     )
 

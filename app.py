@@ -18,7 +18,7 @@ from database import load_horses
 
 st.set_page_config(
     page_title="WPT Keeneland September",
-    page_icon="🐎",
+    page_icon="★",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -30,7 +30,7 @@ st.set_page_config(
 
 def load_css() -> None:
     """
-    Load the existing West Point application styling.
+    Load the West Point application styling.
     """
     css_file = (
         Path(__file__).parent
@@ -67,11 +67,24 @@ def go_to_horse(
     st.rerun()
 
 
+def go_to_catalog() -> None:
+    """
+    Return to the catalog without clearing filters or
+    the user's current catalog page.
+    """
+    st.session_state[
+        "page"
+    ] = "catalog"
+
+    st.rerun()
+
+
 def format_sale_date(
     value,
+    include_year: bool = False,
 ) -> str:
     """
-    Format a sale date for catalog metrics.
+    Format a Keeneland sale date for display.
     """
     if value is None:
         return "—"
@@ -85,42 +98,143 @@ def format_sale_date(
     try:
         timestamp = pd.Timestamp(value)
 
+        if include_year:
+            return timestamp.strftime(
+                "%a, %b %-d, %Y"
+            )
+
         return timestamp.strftime(
-            "%b %-d"
+            "%a, %b %-d"
         )
 
     except Exception:
         return str(value)
 
 
+def get_profile_navigation_horses(
+    horses: pd.DataFrame,
+    selected_hip: int,
+) -> tuple[pd.DataFrame, bool]:
+    """
+    Rebuild the horse universe used for profile navigation.
+
+    When a user enters a horse from filtered catalog results,
+    Previous / Next / Jump to Horse stay inside that same
+    filtered result set.
+
+    Returns:
+        (navigation_horses, using_filtered_context)
+    """
+    stored_hips = st.session_state.get(
+        "catalog_filtered_hips"
+    )
+
+    if stored_hips:
+        try:
+            ordered_hips = [
+                int(hip)
+                for hip in stored_hips
+            ]
+        except (
+            TypeError,
+            ValueError,
+        ):
+            ordered_hips = []
+
+        if (
+            ordered_hips
+            and int(selected_hip) in ordered_hips
+        ):
+            order_map = {
+                hip: index
+                for index, hip
+                in enumerate(ordered_hips)
+            }
+
+            navigation_horses = (
+                horses[
+                    horses["hip_number"]
+                    .isin(ordered_hips)
+                ]
+                .copy()
+            )
+
+            navigation_horses[
+                "_catalog_order"
+            ] = (
+                navigation_horses[
+                    "hip_number"
+                ]
+                .astype(int)
+                .map(order_map)
+            )
+
+            navigation_horses = (
+                navigation_horses
+                .sort_values(
+                    "_catalog_order"
+                )
+                .drop(
+                    columns=[
+                        "_catalog_order"
+                    ]
+                )
+                .reset_index(
+                    drop=True
+                )
+            )
+
+            return (
+                navigation_horses,
+                len(ordered_hips) < len(horses),
+            )
+
+    return (
+        horses
+        .sort_values(
+            "hip_number"
+        )
+        .reset_index(
+            drop=True
+        ),
+        False,
+    )
+
+
 def render_profile_navigation(
     horses: pd.DataFrame,
     selected_hip: int,
+    using_filtered_context: bool,
+    total_catalog_horses: int,
 ) -> None:
     """
-    Render previous / next navigation and the
-    jump-to-horse selector.
+    Render profile-level catalog navigation.
 
-    Navigation uses the complete Keeneland catalog,
-    ordered by hip number.
+    The supplied horse dataframe is already the correct
+    navigation universe: either the user's filtered results
+    or the complete Keeneland catalog.
     """
+    available_columns = [
+        column
+        for column in [
+            "hip_number",
+            "sire",
+            "dam",
+            "book_number",
+            "sale_day",
+            "sale_date",
+        ]
+        if column in horses.columns
+    ]
+
     ordered_horses = (
         horses[
-            [
-                "hip_number",
-                "sire",
-                "dam",
-                "book_number",
-                "sale_day",
-            ]
+            available_columns
         ]
         .dropna(
             subset=[
                 "hip_number"
             ]
-        )
-        .sort_values(
-            "hip_number"
         )
         .reset_index(
             drop=True
@@ -161,171 +275,219 @@ def render_profile_navigation(
         else None
     )
 
-    (
-        previous_column,
-        search_column,
-        next_column,
-    ) = st.columns(
-        [1, 2.6, 1],
-        gap="medium",
-    )
+    with st.container(
+        key="profile_sticky_nav",
+    ):
+        # --------------------------------------------------------
+        # Back to catalog / result context
+        # --------------------------------------------------------
 
-    # --------------------------------------------------------
-    # Previous horse
-    # --------------------------------------------------------
+        back_column, context_column = st.columns(
+            [1.25, 3.75],
+            gap="medium",
+        )
 
-    with previous_column:
-        if previous_hip is not None:
+        with back_column:
             if st.button(
-                f"← Hip {previous_hip}",
-                key=(
-                    "profile_previous_"
-                    f"{selected_hip}"
-                ),
+                "← Back to Catalog",
+                key="profile_back_to_catalog",
                 use_container_width=True,
+                type="primary",
             ):
-                go_to_horse(
-                    previous_hip
+                go_to_catalog()
+
+        with context_column:
+            if using_filtered_context:
+                st.caption(
+                    f"Browsing {len(ordered_horses):,} filtered horses · "
+                    f"Hip {current_index + 1:,} of {len(ordered_horses):,} "
+                    "in these results"
+                )
+            else:
+                st.caption(
+                    f"Browsing full catalog · "
+                    f"{total_catalog_horses:,} horses"
                 )
 
-        else:
-            st.button(
-                "← Previous",
-                disabled=True,
-                use_container_width=True,
-                key=(
-                    "profile_previous_disabled_"
-                    f"{selected_hip}"
-                ),
-            )
+        # --------------------------------------------------------
+        # Previous / jump / next
+        # --------------------------------------------------------
 
-    # --------------------------------------------------------
-    # Jump to horse
-    # --------------------------------------------------------
-
-    with search_column:
-        search_options = []
-
-        for _, horse in (
-            ordered_horses.iterrows()
-        ):
-            hip_number = int(
-                horse["hip_number"]
-            )
-
-            sire = str(
-                horse.get(
-                    "sire",
-                    "",
-                )
-                or ""
-            ).strip()
-
-            dam = str(
-                horse.get(
-                    "dam",
-                    "",
-                )
-                or ""
-            ).strip()
-
-            book_number = horse.get(
-                "book_number"
-            )
-
-            sale_day = horse.get(
-                "sale_day"
-            )
-
-            label = (
-                f"Hip {hip_number}"
-            )
-
-            if sire or dam:
-                label += (
-                    f" · {sire} × {dam}"
-                )
-
-            if pd.notna(book_number):
-                label += (
-                    f" · Book "
-                    f"{int(book_number)}"
-                )
-
-            if pd.notna(sale_day):
-                label += (
-                    f" · Day "
-                    f"{int(sale_day)}"
-                )
-
-            search_options.append(
-                label
-            )
-
-        selected_label = (
-            st.selectbox(
-                "Jump to horse",
-                options=search_options,
-                index=current_index,
-                key=(
-                    "profile_jump_"
-                    f"{selected_hip}"
-                ),
-                label_visibility=(
-                    "collapsed"
-                ),
-            )
+        (
+            previous_column,
+            search_column,
+            next_column,
+        ) = st.columns(
+            [1, 2.8, 1],
+            gap="medium",
         )
 
-        selected_search_hip = int(
-            selected_label
-            .split(
-                "·",
-                1,
-            )[0]
-            .replace(
-                "Hip",
-                "",
-            )
-            .strip()
-        )
+        with previous_column:
+            if previous_hip is not None:
+                if st.button(
+                    f"← Hip {previous_hip}",
+                    key=(
+                        "profile_previous_"
+                        f"{selected_hip}"
+                    ),
+                    use_container_width=True,
+                ):
+                    go_to_horse(
+                        previous_hip
+                    )
 
-        if (
-            selected_search_hip
-            != selected_hip
-        ):
-            go_to_horse(
+            else:
+                st.button(
+                    "← Previous",
+                    disabled=True,
+                    use_container_width=True,
+                    key=(
+                        "profile_previous_disabled_"
+                        f"{selected_hip}"
+                    ),
+                )
+
+        with search_column:
+            search_options = []
+
+            for _, horse in (
+                ordered_horses.iterrows()
+            ):
+                hip_number = int(
+                    horse["hip_number"]
+                )
+
+                sire = str(
+                    horse.get(
+                        "sire",
+                        "",
+                    )
+                    or ""
+                ).strip()
+
+                dam = str(
+                    horse.get(
+                        "dam",
+                        "",
+                    )
+                    or ""
+                ).strip()
+
+                book_number = horse.get(
+                    "book_number"
+                )
+
+                sale_day = horse.get(
+                    "sale_day"
+                )
+
+                sale_date = horse.get(
+                    "sale_date"
+                )
+
+                label = (
+                    f"Hip {hip_number}"
+                )
+
+                if sire or dam:
+                    label += (
+                        f" · {sire} × {dam}"
+                    )
+
+                if pd.notna(book_number):
+                    label += (
+                        f" · Book "
+                        f"{int(book_number)}"
+                    )
+
+                day_parts = []
+
+                if pd.notna(sale_day):
+                    day_parts.append(
+                        f"Day {int(sale_day)}"
+                    )
+
+                date_label = format_sale_date(
+                    sale_date
+                )
+
+                if date_label != "—":
+                    day_parts.append(
+                        date_label
+                    )
+
+                if day_parts:
+                    label += (
+                        " · "
+                        + " · ".join(
+                            day_parts
+                        )
+                    )
+
+                search_options.append(
+                    label
+                )
+
+            selected_label = (
+                st.selectbox(
+                    "Jump to horse",
+                    options=search_options,
+                    index=current_index,
+                    key=(
+                        "profile_jump_"
+                        f"{selected_hip}"
+                    ),
+                    label_visibility=(
+                        "collapsed"
+                    ),
+                )
+            )
+
+            selected_search_hip = int(
+                selected_label
+                .split(
+                    "·",
+                    1,
+                )[0]
+                .replace(
+                    "Hip",
+                    "",
+                )
+                .strip()
+            )
+
+            if (
                 selected_search_hip
-            )
-
-    # --------------------------------------------------------
-    # Next horse
-    # --------------------------------------------------------
-
-    with next_column:
-        if next_hip is not None:
-            if st.button(
-                f"Hip {next_hip} →",
-                key=(
-                    "profile_next_"
-                    f"{selected_hip}"
-                ),
-                use_container_width=True,
+                != selected_hip
             ):
                 go_to_horse(
-                    next_hip
+                    selected_search_hip
                 )
 
-        else:
-            st.button(
-                "Next →",
-                disabled=True,
-                use_container_width=True,
-                key=(
-                    "profile_next_disabled_"
-                    f"{selected_hip}"
-                ),
-            )
+        with next_column:
+            if next_hip is not None:
+                if st.button(
+                    f"Hip {next_hip} →",
+                    key=(
+                        "profile_next_"
+                        f"{selected_hip}"
+                    ),
+                    use_container_width=True,
+                ):
+                    go_to_horse(
+                        next_hip
+                    )
+
+            else:
+                st.button(
+                    "Next →",
+                    disabled=True,
+                    use_container_width=True,
+                    key=(
+                        "profile_next_disabled_"
+                        f"{selected_hip}"
+                    ),
+                )
 
 
 # ============================================================
@@ -375,15 +537,15 @@ if (
     )
 
     if selected_hip is None:
-        st.session_state[
-            "page"
-        ] = "catalog"
+        go_to_catalog()
 
-        st.rerun()
+    selected_hip = int(
+        selected_hip
+    )
 
     selected_horse = horses[
         horses["hip_number"]
-        == int(selected_hip)
+        == selected_hip
     ]
 
     if selected_horse.empty:
@@ -395,19 +557,32 @@ if (
         if st.button(
             "Return to Catalog"
         ):
-            st.session_state[
-                "page"
-            ] = "catalog"
-
-            st.rerun()
+            go_to_catalog()
 
         st.stop()
 
-    render_profile_navigation(
+    (
+        navigation_horses,
+        using_filtered_context,
+    ) = get_profile_navigation_horses(
         horses=horses,
-        selected_hip=int(
-            selected_hip
+        selected_hip=selected_hip,
+    )
+
+    render_profile_navigation(
+        horses=navigation_horses,
+        selected_hip=selected_hip,
+        using_filtered_context=(
+            using_filtered_context
         ),
+        total_catalog_horses=len(
+            horses
+        ),
+    )
+
+    st.markdown(
+        '<div class="wpt-profile-nav-spacer"></div>',
+        unsafe_allow_html=True,
     )
 
     st.divider()
@@ -435,6 +610,19 @@ else:
             horses,
             filters,
         )
+    )
+
+    # Store the exact current result universe so profile
+    # navigation can stay inside it.
+    st.session_state[
+        "catalog_filtered_hips"
+    ] = (
+        filtered_horses[
+            "hip_number"
+        ]
+        .dropna()
+        .astype(int)
+        .tolist()
     )
 
     st.sidebar.markdown(
@@ -465,7 +653,7 @@ else:
     st.caption(
         "2026 Keeneland September Yearling Sale · "
         "Pedigree, commercial analysis, "
-        "nicking data, and prospect research."
+        "sale information, photography, and video."
     )
 
     # --------------------------------------------------------

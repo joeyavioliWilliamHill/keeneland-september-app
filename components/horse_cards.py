@@ -91,6 +91,35 @@ def format_integer(
         )
 
 
+def format_sale_date(
+    value: Any,
+    fallback: str = "—",
+) -> str:
+    """
+    Format the horse's Keeneland sale date for compact card display.
+    """
+    if value is None:
+        return fallback
+
+    try:
+        if pd.isna(value):
+            return fallback
+    except (TypeError, ValueError):
+        pass
+
+    try:
+        timestamp = pd.Timestamp(value)
+
+        return timestamp.strftime(
+            "%a, %b %-d"
+        )
+    except Exception:
+        return display_value(
+            value,
+            fallback,
+        )
+
+
 def has_photo(
     photo_url: Any,
 ) -> bool:
@@ -192,7 +221,7 @@ def build_image_html(
     placeholder = (
         html_tag(
             "div",
-            "🐎",
+            "★",
             "wpt-placeholder-icon",
         )
         + html_tag(
@@ -350,9 +379,9 @@ def build_badges_html(
 
         if badge_type == "wpt":
             style = (
-                "background:#15392F;"
-                "color:#FFFFFF;"
-                "border:1px solid #15392F;"
+                "background:#000000;"
+                "color:#F3BD18;"
+                "border:1px solid #000000;"
             )
 
         elif badge_type == "sold":
@@ -421,6 +450,14 @@ def build_heading_html(
         )
     )
 
+    sale_date = html.escape(
+        format_sale_date(
+            horse.get(
+                "sale_date"
+            )
+        )
+    )
+
     sire = html.escape(
         display_value(
             horse.get(
@@ -454,6 +491,8 @@ def build_heading_html(
             f"BOOK {book_number}"
             f'<span class="wpt-card-dot">•</span>'
             f"DAY {sale_day}"
+            f'<span class="wpt-card-dot">•</span>'
+            f"{sale_date}"
         ),
         "wpt-card-eyebrow",
     )
@@ -580,10 +619,10 @@ def render_horse_card(
         with metric_right:
             render_html(
                 build_stat_html(
-                    "TrueNicks",
+                    "Barn",
                     display_value(
                         horse.get(
-                            "true_nicks_rating"
+                            "barn"
                         ),
                         "—",
                     ),
