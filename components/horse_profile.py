@@ -369,6 +369,74 @@ def render_metric_card(label: str, value: str | None) -> None:
     )
 
 
+
+def format_thorograph_value(value: Any) -> str:
+    """
+    Convert Auction Edge's flattened Thoro-Graph notation into a
+    human-readable figure and intentionally suppress the unexplained
+    parenthetical value.
+
+    Auction Edge / Thoro-Graph quarter-point notation:
+        trailing 1 = 1/4
+        trailing 2 = 1/2
+        trailing 3 = 3/4
+
+    Examples:
+        "202 (74)" -> "20½"
+        "151 (70)" -> "15¼"
+        "132 (82)" -> "13½"
+        "23 (26)"  -> "2¾"
+        "6 (94)"   -> "6"
+
+    The parenthetical value is retained in the source record but is not
+    displayed until its meaning is verified.
+    """
+    if value is None:
+        return "—"
+
+    raw = str(value).strip()
+
+    if raw in ("", "-", "—"):
+        return "—"
+
+    # Keep only the primary Thoro-Graph token; do not display the
+    # parenthetical Auction Edge value.
+    primary = re.split(r"\s*\(", raw, maxsplit=1)[0].strip()
+
+    if primary in ("", "-", "—"):
+        return "—"
+
+    # Preserve uncommon non-numeric values rather than guessing.
+    match = re.fullmatch(r"(?P<sign>-?)(?P<number>\d+)", primary)
+
+    if not match:
+        return primary
+
+    sign = match.group("sign")
+    digits = match.group("number")
+
+    # Auction Edge PDF extraction flattens Thoro-Graph's superscript
+    # quarter-point digit into the end of the number.
+    if len(digits) >= 2 and digits[-1] in {"1", "2", "3"}:
+        fraction_map = {
+            "1": "¼",
+            "2": "½",
+            "3": "¾",
+        }
+
+        whole = digits[:-1]
+
+        # "01", "02", "03" should render as fractional zero figures.
+        whole = str(int(whole)) if whole else "0"
+
+        return (
+            f"{sign}{whole}"
+            f"{fraction_map[digits[-1]]}"
+        )
+
+    return f"{sign}{digits}"
+
+
 def render_first_dam_record(record: Any) -> None:
     cleaned_record = display_value(record, "—")
 
@@ -411,7 +479,7 @@ def render_first_dam_record(record: Any) -> None:
         value not in (None, "", "-")
         for value in thorograph.values()
     ):
-        st.markdown("##### ThoroGraph")
+        st.markdown("##### Thoro-Graph Performance")
 
         tg_columns = st.columns(4)
 
@@ -421,10 +489,17 @@ def render_first_dam_record(record: Any) -> None:
             ["2yo", "3yo", "4yo", "5yo+"],
         ):
             value = thorograph.get(key)
-            display = "—" if value in (None, "", "-") else value
+            display = format_thorograph_value(
+                value
+            )
 
             with column:
                 render_metric_card(label, display)
+
+        st.caption(
+            "Lower Thoro-Graph figures indicate stronger performances. "
+            "Quarter-point notation has been converted for readability."
+        )
 
     performance_text = parsed.get("performance_text")
 
@@ -967,7 +1042,7 @@ def render_produce_card(
             for value in thorograph.values()
         ):
             st.markdown(
-                "##### ThoroGraph"
+                "##### Thoro-Graph Performance"
             )
 
             tg_columns = st.columns(4)
@@ -995,14 +1070,8 @@ def render_produce_card(
                     key
                 )
 
-                display = (
-                    "—"
-                    if value in (
-                        None,
-                        "",
-                        "-",
-                    )
-                    else value
+                display = format_thorograph_value(
+                    value
                 )
 
                 with column:
@@ -1010,6 +1079,11 @@ def render_produce_card(
                         label,
                         display,
                     )
+
+            st.caption(
+                "Lower Thoro-Graph figures indicate stronger performances. "
+                "Quarter-point notation has been converted for readability."
+            )
 
         if parsed.get("sale_history"):
             st.markdown("##### Sale History")

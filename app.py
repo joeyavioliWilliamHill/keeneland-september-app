@@ -2,6 +2,7 @@ from pathlib import Path
 
 import pandas as pd
 import streamlit as st
+import streamlit.components.v1 as components
 
 from components.filters import (
     apply_filters,
@@ -50,6 +51,67 @@ def load_css() -> None:
         )
 
 
+def scroll_profile_to_top(
+    selected_hip: int,
+) -> None:
+    """
+    Scroll to the top when a new horse profile opens.
+
+    Runs only once per hip so normal reruns inside the same
+    profile do not keep snapping the user upward.
+    """
+    selected_hip = int(selected_hip)
+
+    if (
+        st.session_state.get(
+            "last_profile_scroll_hip"
+        )
+        == selected_hip
+    ):
+        return
+
+    st.session_state[
+        "last_profile_scroll_hip"
+    ] = selected_hip
+
+    components.html(
+        """
+        <script>
+        (function () {
+            const doc = window.parent.document;
+
+            const candidates = [
+                doc.querySelector('[data-testid="stAppViewContainer"]'),
+                doc.querySelector('[data-testid="stMain"]'),
+                doc.querySelector('section.main'),
+                doc.scrollingElement,
+                doc.documentElement,
+                doc.body
+            ].filter(Boolean);
+
+            candidates.forEach((el) => {
+                try {
+                    if (typeof el.scrollTo === "function") {
+                        el.scrollTo({top: 0, left: 0, behavior: "instant"});
+                    } else {
+                        el.scrollTop = 0;
+                    }
+                } catch (e) {
+                    try { el.scrollTop = 0; } catch (_) {}
+                }
+            });
+
+            try {
+                window.parent.scrollTo(0, 0);
+            } catch (e) {}
+        })();
+        </script>
+        """,
+        height=0,
+        width=0,
+    )
+
+
 def go_to_horse(
     hip_number: int,
 ) -> None:
@@ -75,6 +137,11 @@ def go_to_catalog() -> None:
     st.session_state[
         "page"
     ] = "catalog"
+
+    st.session_state.pop(
+        "last_profile_scroll_hip",
+        None,
+    )
 
     st.rerun()
 
@@ -540,6 +607,10 @@ if (
         go_to_catalog()
 
     selected_hip = int(
+        selected_hip
+    )
+
+    scroll_profile_to_top(
         selected_hip
     )
 

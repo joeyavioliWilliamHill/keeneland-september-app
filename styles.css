@@ -802,3 +802,137 @@ div[class*="st-key-profile_sticky_nav"] {
     }
 }
 
+
+/* =======================================================
+   MOBILE PROFILE FIXES
+   - Compact Back to Catalog button
+   - Strong text contrast on light mobile backgrounds
+   - Tighter fixed profile navigation footprint
+======================================================= */
+
+@media (max-width: 900px) {
+
+    /* ---------------------------------------------------
+       Fixed profile navigation
+       --------------------------------------------------- */
+
+    .st-key-profile_sticky_nav,
+    div[class*="st-key-profile_sticky_nav"] {
+        left: 0.65rem !important;
+        right: 0.65rem !important;
+        top: 3.1rem !important;
+        padding: 0.5rem 0.6rem 0.6rem !important;
+        border-radius: 0 0 12px 12px !important;
+    }
+
+    /* The Back to Catalog control should read as a compact
+       utility action on phones rather than a large CTA. */
+    .st-key-profile_back_to_catalog,
+    div[class*="st-key-profile_back_to_catalog"] {
+        width: auto !important;
+        max-width: max-content !important;
+    }
+
+    .st-key-profile_back_to_catalog button,
+    div[class*="st-key-profile_back_to_catalog"] button {
+        width: auto !important;
+        min-height: 2rem !important;
+        padding: 0.34rem 0.62rem !important;
+        font-size: 0.76rem !important;
+        line-height: 1.1 !important;
+        border-radius: 7px !important;
+        white-space: nowrap !important;
+    }
+
+    .st-key-profile_back_to_catalog button p,
+    div[class*="st-key-profile_back_to_catalog"] button p,
+    .st-key-profile_back_to_catalog button span,
+    div[class*="st-key-profile_back_to_catalog"] button span {
+        font-size: 0.76rem !important;
+        line-height: 1.1 !important;
+        color: #F3BD18 !important;
+    }
+
+    /* Slightly reduce the space reserved underneath the
+       fixed profile navigation on mobile. */
+    .wpt-profile-nav-spacer {
+        height: 9rem !important;
+    }
+
+    /* ---------------------------------------------------
+       Main-content text contrast
+       --------------------------------------------------- */
+
+    /* Streamlit can inherit light text from device/browser
+       theme settings. Explicitly pin normal profile/catalog
+       copy to dark colors on the app's light background. */
+    [data-testid="stMain"] {
+        color: #1F2937 !important;
+    }
+
+    [data-testid="stMain"] .stMarkdown,
+    [data-testid="stMain"] .stMarkdown p,
+    [data-testid="stMain"] .stMarkdown li,
+    [data-testid="stMain"] .stMarkdown label,
+    [data-testid="stMain"] [data-testid="stCaptionContainer"],
+    [data-testid="stMain"] [data-testid="stCaptionContainer"] p {
+        color: #30343F !important;
+        -webkit-text-fill-color: #30343F !important;
+    }
+
+    [data-testid="stMain"] h1,
+    [data-testid="stMain"] h2,
+    [data-testid="stMain"] h3,
+    [data-testid="stMain"] h4,
+    [data-testid="stMain"] h5,
+    [data-testid="stMain"] h6 {
+        color: #000000 !important;
+        -webkit-text-fill-color: #000000 !important;
+    }
+
+    /* Tabs */
+    [data-testid="stMain"] button[data-baseweb="tab"],
+    [data-testid="stMain"] button[data-baseweb="tab"] p,
+    [data-testid="stMain"] button[data-baseweb="tab"] span {
+        color: #30343F !important;
+        -webkit-text-fill-color: #30343F !important;
+    }
+
+    [data-testid="stMain"] button[data-baseweb="tab"][aria-selected="true"],
+    [data-testid="stMain"] button[data-baseweb="tab"][aria-selected="true"] p,
+    [data-testid="stMain"] button[data-baseweb="tab"][aria-selected="true"] span {
+        color: #000000 !important;
+        -webkit-text-fill-color: #000000 !important;
+    }
+
+    /* Selectboxes inside profile navigation stay readable. */
+    .st-key-profile_sticky_nav div[data-baseweb="select"] > div,
+    div[class*="st-key-profile_sticky_nav"] div[data-baseweb="select"] > div {
+        background: #FFFFFF !important;
+    }
+
+    .st-key-profile_sticky_nav div[data-baseweb="select"] span,
+    div[class*="st-key-profile_sticky_nav"] div[data-baseweb="select"] span {
+        color: #1F2937 !important;
+        -webkit-text-fill-color: #1F2937 !important;
+    }
+
+    /* Preserve intended white text on black buttons. */
+    [data-testid="stMain"] .stButton button:not([data-testid="stBaseButton-primary"]),
+    [data-testid="stMain"] .stButton button:not([data-testid="stBaseButton-primary"]) p,
+    [data-testid="stMain"] .stButton button:not([data-testid="stBaseButton-primary"]) span {
+        color: #FFFFFF !important;
+        -webkit-text-fill-color: #FFFFFF !important;
+    }
+
+    /* Primary Back to Catalog remains gold on black. */
+    .st-key-profile_back_to_catalog button,
+    .st-key-profile_back_to_catalog button p,
+    .st-key-profile_back_to_catalog button span,
+    div[class*="st-key-profile_back_to_catalog"] button,
+    div[class*="st-key-profile_back_to_catalog"] button p,
+    div[class*="st-key-profile_back_to_catalog"] button span {
+        color: #F3BD18 !important;
+        -webkit-text-fill-color: #F3BD18 !important;
+    }
+}
