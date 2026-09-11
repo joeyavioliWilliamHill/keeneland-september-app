@@ -1453,7 +1453,7 @@ def render_sales_video(
     # Extract Vimeo video ID from URLs such as:
     # https://vimeo.com/1213418917
     vimeo_match = re.search(
-        r"vimeo\.com/(\d+)",
+        r"(?:player\.)?vimeo\.com/(?:video/)?(\d+)",
         video_url,
     )
 
