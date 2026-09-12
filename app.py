@@ -377,184 +377,27 @@ def render_profile_navigation(
                 )
 
         # --------------------------------------------------------
-        # Previous / jump / next
+        # Horizontal hip navigation slider
         # --------------------------------------------------------
 
-        (
-            previous_column,
-            search_column,
-            next_column,
-        ) = st.columns(
-            [1, 2.8, 1],
-            gap="medium",
+        st.markdown(
+            '<div class="wpt-hip-slider-label">Browse horses</div>',
+            unsafe_allow_html=True,
         )
 
-        with previous_column:
-            if previous_hip is not None:
-                if st.button(
-                    f"← Hip {previous_hip}",
-                    key=(
-                        "profile_previous_"
-                        f"{selected_hip}"
-                    ),
-                    use_container_width=True,
-                ):
-                    go_to_horse(
-                        previous_hip
-                    )
+        slider_hip = st.select_slider(
+            "Browse horses",
+            options=hip_numbers,
+            value=selected_hip,
+            format_func=lambda hip: f"Hip {hip}",
+            key=f"profile_hip_slider_{selected_hip}",
+            label_visibility="collapsed",
+        )
 
-            else:
-                st.button(
-                    "← Previous",
-                    disabled=True,
-                    use_container_width=True,
-                    key=(
-                        "profile_previous_disabled_"
-                        f"{selected_hip}"
-                    ),
-                )
-
-        with search_column:
-            search_options = []
-
-            for _, horse in (
-                ordered_horses.iterrows()
-            ):
-                hip_number = int(
-                    horse["hip_number"]
-                )
-
-                sire = str(
-                    horse.get(
-                        "sire",
-                        "",
-                    )
-                    or ""
-                ).strip()
-
-                dam = str(
-                    horse.get(
-                        "dam",
-                        "",
-                    )
-                    or ""
-                ).strip()
-
-                book_number = horse.get(
-                    "book_number"
-                )
-
-                sale_day = horse.get(
-                    "sale_day"
-                )
-
-                sale_date = horse.get(
-                    "sale_date"
-                )
-
-                label = (
-                    f"Hip {hip_number}"
-                )
-
-                if sire or dam:
-                    label += (
-                        f" · {sire} × {dam}"
-                    )
-
-                if pd.notna(book_number):
-                    label += (
-                        f" · Book "
-                        f"{int(book_number)}"
-                    )
-
-                day_parts = []
-
-                if pd.notna(sale_day):
-                    day_parts.append(
-                        f"Day {int(sale_day)}"
-                    )
-
-                date_label = format_sale_date(
-                    sale_date
-                )
-
-                if date_label != "—":
-                    day_parts.append(
-                        date_label
-                    )
-
-                if day_parts:
-                    label += (
-                        " · "
-                        + " · ".join(
-                            day_parts
-                        )
-                    )
-
-                search_options.append(
-                    label
-                )
-
-            selected_label = (
-                st.selectbox(
-                    "Jump to horse",
-                    options=search_options,
-                    index=current_index,
-                    key=(
-                        "profile_jump_"
-                        f"{selected_hip}"
-                    ),
-                    label_visibility=(
-                        "collapsed"
-                    ),
-                )
+        if int(slider_hip) != int(selected_hip):
+            go_to_horse(
+                int(slider_hip)
             )
-
-            selected_search_hip = int(
-                selected_label
-                .split(
-                    "·",
-                    1,
-                )[0]
-                .replace(
-                    "Hip",
-                    "",
-                )
-                .strip()
-            )
-
-            if (
-                selected_search_hip
-                != selected_hip
-            ):
-                go_to_horse(
-                    selected_search_hip
-                )
-
-        with next_column:
-            if next_hip is not None:
-                if st.button(
-                    f"Hip {next_hip} →",
-                    key=(
-                        "profile_next_"
-                        f"{selected_hip}"
-                    ),
-                    use_container_width=True,
-                ):
-                    go_to_horse(
-                        next_hip
-                    )
-
-            else:
-                st.button(
-                    "Next →",
-                    disabled=True,
-                    use_container_width=True,
-                    key=(
-                        "profile_next_disabled_"
-                        f"{selected_hip}"
-                    ),
-                )
 
 
 # ============================================================

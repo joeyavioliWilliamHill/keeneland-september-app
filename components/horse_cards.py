@@ -574,17 +574,76 @@ def render_horse_card(
     with st.container(
         border=True
     ):
-        render_horse_image(
-            hip_number=hip_number,
-            photo_url=horse.get(
-                "photo_url"
+        sale_status = display_value(
+            horse.get(
+                "sale_status"
             ),
-            image_height=285,
-        )
+            "PENDING",
+        ).upper()
 
-        badges_html = build_badges_html(
-            horse
-        )
+        if sale_status == "OUT":
+            render_html(
+                f"""
+                <div class="wpt-horse-image-wrap"
+                     style="
+                        height:285px;
+                        display:flex;
+                        align-items:center;
+                        justify-content:center;
+                        text-align:center;
+                        background:#F3F4F6;
+                        border:1px solid #D1D5DB;
+                        border-radius:14px;
+                        box-sizing:border-box;
+                     ">
+                    <div>
+                        <div style="
+                            font-size:0.85rem;
+                            font-weight:800;
+                            letter-spacing:0.12em;
+                            text-transform:uppercase;
+                            color:#6B7280;
+                            margin-bottom:0.55rem;
+                        ">
+                            HIP {hip_number}
+                        </div>
+                        <div style="
+                            font-size:3.35rem;
+                            line-height:1;
+                            font-weight:900;
+                            letter-spacing:0.04em;
+                            color:#374151;
+                        ">
+                            OUT
+                        </div>
+                        <div style="
+                            margin-top:0.7rem;
+                            color:#6B7280;
+                            font-size:0.9rem;
+                            font-weight:600;
+                        ">
+                            Withdrawn from the sale
+                        </div>
+                    </div>
+                </div>
+                """
+            )
+
+            # Do not show the small OUT badge when the image area
+            # already communicates the status prominently.
+            badges_html = ""
+        else:
+            render_horse_image(
+                hip_number=hip_number,
+                photo_url=horse.get(
+                    "photo_url"
+                ),
+                image_height=285,
+            )
+
+            badges_html = build_badges_html(
+                horse
+            )
 
         if badges_html:
             render_html(

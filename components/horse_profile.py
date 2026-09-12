@@ -110,96 +110,78 @@ def extract_money(value: str | None) -> str | None:
     return match.group(0).replace(" ", "") if match else None
 
 
-def format_profile_sale_date(
-    value: Any,
-) -> str:
-    """Format the current Keeneland sale date for profile display."""
-    if value is None:
-        return "—"
-
-    try:
-        if pd.isna(value):
-            return "—"
-    except (TypeError, ValueError):
-        pass
-
-    try:
-        timestamp = pd.Timestamp(value)
-        return timestamp.strftime("%A, %B %-d")
-    except Exception:
-        return display_value(value, "—")
-
-
 def parse_sale_history_entry(value: str) -> dict[str, str | None]:
-    """
-    Parse one catalog sale-history segment.
-
-    Auction Edge sale codes begin with a two-digit historical year,
-    e.g. 25KEESEP = 2025 Keeneland September. Only 00-26 are
-    expanded to 2000-2026 for this 2026 catalog.
-    """
+    """Parse one catalog sale-history segment into readable fields."""
     text = str(value).strip()
 
     sale_match = re.search(
-        r"\b(?P<yy>\d{2})(?P<suffix>[A-Z]{3,10})\b",
+        r"\b(?P<sale>\d{2}[A-Z]{3,10})\b",
         text,
         flags=re.IGNORECASE,
     )
+
     price_match = re.search(
         r"(?P<rna>\()?\$(?P<price>[\d,]+)\)?",
         text,
     )
+
     consignor_match = re.search(
-        r"Consignor:\s*(?P<consignor>[^;•]+)",
-        text,
-        flags=re.IGNORECASE,
-    )
-    buyer_match = re.search(
-        r"Buyer:\s*(?P<buyer>[^;•]+)",
-        text,
-        flags=re.IGNORECASE,
-    )
-    for_match = re.search(
-        r"—\s*For:\s*(?P<for_party>.+)$",
+        r"Consignor:\s*(?P<consignor>[^;]+)",
         text,
         flags=re.IGNORECASE,
     )
 
-    sale_code = None
+    buyer_match = re.search(
+        r"Buyer:\s*(?P<buyer>[^;]+)",
+        text,
+        flags=re.IGNORECASE,
+    )
+
+    for_match = re.search(
+        r"—For:\s*(?P<for_party>.+)$",
+        text,
+        flags=re.IGNORECASE,
+    )
+
+    sale_code = sale_match.group("sale") if sale_match else None
     sale_year = None
     sale_name = None
 
-    if sale_match:
-        year_prefix = int(sale_match.group("yy"))
-        code_suffix = sale_match.group("suffix").upper()
+    if sale_code:
+        year_prefix = sale_code[:2]
+        code_suffix = sale_code[2:].upper()
+        sale_year = f"20{year_prefix}"
 
-        if 0 <= year_prefix <= 26:
-            sale_year = str(2000 + year_prefix)
-            sale_code = f"{year_prefix:02d}{code_suffix}"
+        sale_names = {
+            "KEENOV": "Keeneland November",
+            "KEESEP": "Keeneland September",
+            "KEEJAN": "Keeneland January",
+            "FTKOCT": "Fasig-Tipton October",
+            "FTKNOV": "Fasig-Tipton November",
+            "FTKHRA": "Fasig-Tipton Horses of Racing Age",
+            "FTNMIX": "Fasig-Tipton Midlantic Mixed",
+            "FTSAUG": "Fasig-Tipton Saratoga",
+            "SARAUG": "Saratoga August",
+            "OBSAPR": "OBS April",
+            "OBSOPN": "OBS June / Open",
+            "OBSMAR": "OBS March",
+            "EASMAY": "Fasig-Tipton Midlantic May",
+            "FTDFEB": "Fasig-Tipton Digital February",
+            "CLAIM": "Claim",
+        }
 
-            sale_names = {
-                "KEENOV": "Keeneland November",
-                "KEESEP": "Keeneland September",
-                "KEEJAN": "Keeneland January",
-                "FTKOCT": "Fasig-Tipton October",
-                "FTKNOV": "Fasig-Tipton November",
-                "FTKHRA": "Fasig-Tipton Horses of Racing Age",
-                "FTNMIX": "Fasig-Tipton Midlantic Mixed",
-                "FTSAUG": "Fasig-Tipton Saratoga",
-                "SARAUG": "Saratoga August",
-                "OBSAPR": "OBS April",
-                "OBSOPN": "OBS June / Open",
-                "OBSMAR": "OBS March",
-                "EASMAY": "Fasig-Tipton Midlantic May",
-                "FTFMAR": "Fasig-Tipton Florida March",
-                "FTDFEB": "Fasig-Tipton Digital February",
-                "CLAIM": "Claim",
-            }
-            sale_name = sale_names.get(code_suffix, code_suffix)
+        sale_name = sale_names.get(code_suffix, sale_code)
 
     price = f"${price_match.group('price')}" if price_match else None
-    is_rna = bool(price_match and price_match.group("rna")) or bool(
-        re.search(r"\(RNA\)", text, flags=re.IGNORECASE)
+
+    is_rna = bool(
+        price_match and price_match.group("rna")
+    ) or bool(
+        re.search(
+            r"\(RNA\)",
+            text,
+            flags=re.IGNORECASE,
+        )
     )
 
     return {
@@ -208,9 +190,21 @@ def parse_sale_history_entry(value: str) -> dict[str, str | None]:
         "sale_year": sale_year,
         "price": price,
         "rna": "RNA" if is_rna else None,
-        "consignor": consignor_match.group("consignor").strip() if consignor_match else None,
-        "buyer": buyer_match.group("buyer").strip() if buyer_match else None,
-        "for_party": for_match.group("for_party").strip() if for_match else None,
+        "consignor": (
+            consignor_match.group("consignor").strip()
+            if consignor_match
+            else None
+        ),
+        "buyer": (
+            buyer_match.group("buyer").strip()
+            if buyer_match
+            else None
+        ),
+        "for_party": (
+            for_match.group("for_party").strip()
+            if for_match
+            else None
+        ),
         "raw": text,
     }
 
@@ -369,74 +363,6 @@ def render_metric_card(label: str, value: str | None) -> None:
     )
 
 
-
-def format_thorograph_value(value: Any) -> str:
-    """
-    Convert Auction Edge's flattened Thoro-Graph notation into a
-    human-readable figure and intentionally suppress the unexplained
-    parenthetical value.
-
-    Auction Edge / Thoro-Graph quarter-point notation:
-        trailing 1 = 1/4
-        trailing 2 = 1/2
-        trailing 3 = 3/4
-
-    Examples:
-        "202 (74)" -> "20½"
-        "151 (70)" -> "15¼"
-        "132 (82)" -> "13½"
-        "23 (26)"  -> "2¾"
-        "6 (94)"   -> "6"
-
-    The parenthetical value is retained in the source record but is not
-    displayed until its meaning is verified.
-    """
-    if value is None:
-        return "—"
-
-    raw = str(value).strip()
-
-    if raw in ("", "-", "—"):
-        return "—"
-
-    # Keep only the primary Thoro-Graph token; do not display the
-    # parenthetical Auction Edge value.
-    primary = re.split(r"\s*\(", raw, maxsplit=1)[0].strip()
-
-    if primary in ("", "-", "—"):
-        return "—"
-
-    # Preserve uncommon non-numeric values rather than guessing.
-    match = re.fullmatch(r"(?P<sign>-?)(?P<number>\d+)", primary)
-
-    if not match:
-        return primary
-
-    sign = match.group("sign")
-    digits = match.group("number")
-
-    # Auction Edge PDF extraction flattens Thoro-Graph's superscript
-    # quarter-point digit into the end of the number.
-    if len(digits) >= 2 and digits[-1] in {"1", "2", "3"}:
-        fraction_map = {
-            "1": "¼",
-            "2": "½",
-            "3": "¾",
-        }
-
-        whole = digits[:-1]
-
-        # "01", "02", "03" should render as fractional zero figures.
-        whole = str(int(whole)) if whole else "0"
-
-        return (
-            f"{sign}{whole}"
-            f"{fraction_map[digits[-1]]}"
-        )
-
-    return f"{sign}{digits}"
-
-
 def render_first_dam_record(record: Any) -> None:
     cleaned_record = display_value(record, "—")
 
@@ -479,7 +405,7 @@ def render_first_dam_record(record: Any) -> None:
         value not in (None, "", "-")
         for value in thorograph.values()
     ):
-        st.markdown("##### Thoro-Graph Performance")
+        st.markdown("##### ThoroGraph")
 
         tg_columns = st.columns(4)
 
@@ -489,17 +415,10 @@ def render_first_dam_record(record: Any) -> None:
             ["2yo", "3yo", "4yo", "5yo+"],
         ):
             value = thorograph.get(key)
-            display = format_thorograph_value(
-                value
-            )
+            display = "—" if value in (None, "", "-") else value
 
             with column:
                 render_metric_card(label, display)
-
-        st.caption(
-            "Lower Thoro-Graph figures indicate stronger performances. "
-            "Quarter-point notation has been converted for readability."
-        )
 
     performance_text = parsed.get("performance_text")
 
@@ -603,7 +522,7 @@ def render_first_dam_record(record: Any) -> None:
                             {safe_heading}
                         </div>
                         <div style="
-                            color:#000000;
+                            color:#15392F;
                             font-size:0.94rem;
                             font-weight:800;
                             white-space:nowrap;
@@ -620,42 +539,43 @@ def render_first_dam_record(record: Any) -> None:
 
 def parse_produce_record(record: str) -> dict[str, Any]:
     """
-    Parse one first-dam produce record while preserving named offspring,
-    including Auction Edge rows such as:
-        17-20-Here Comes Josie, m., by Flatter...
+    Parse one first-dam produce record while preserving named offspring.
     """
     record = str(record).strip()
-    year = None
-    body = record
 
     year_match = re.match(
         r"^(?P<year>\d{2})-(?P<body>.+)$",
-        body,
+        record,
         flags=re.IGNORECASE,
     )
+
+    year = None
+    body = record
 
     if year_match:
         year = f"20{year_match.group('year')}"
         body = year_match.group("body").strip()
 
-    # Auction Edge can insert a second two-digit metadata token
-    # after the foaling year. It is not part of the offspring name.
-    body = re.sub(
-        r"^\d{2}-(?=[A-Za-z])",
-        "",
-        body,
-        count=1,
-    )
+        body = re.sub(
+            r"^\d{2}-(?=(?:c|f|g|h|m|r|b|dkb/br\.?|ch\.?),)",
+            "",
+            body,
+            flags=re.IGNORECASE,
+        )
 
     sex_pattern = r"(?:c|f|g|h|m|r|b|dkb/br\.?|ch\.?)"
 
     named_match = re.match(
-        rf"^(?P<name>.+?),\s*(?P<sex>{sex_pattern})\.?,?\s*by\s+(?P<sire>[^,]+)",
+        rf"^(?P<name>.+?),\s*"
+        rf"(?P<sex>{sex_pattern}),?\s*"
+        rf"by\s+(?P<sire>[^,]+)",
         body,
         flags=re.IGNORECASE,
     )
+
     unnamed_match = re.match(
-        rf"^(?P<sex>{sex_pattern})\.?,?\s*by\s+(?P<sire>[^,]+)",
+        rf"^(?P<sex>{sex_pattern}),?\s*"
+        rf"by\s+(?P<sire>[^,]+)",
         body,
         flags=re.IGNORECASE,
     )
@@ -666,17 +586,35 @@ def parse_produce_record(record: str) -> dict[str, Any]:
 
     if named_match:
         candidate_name = named_match.group("name").strip(" ,.-")
-        name = candidate_name or None
-        sex = named_match.group("sex").strip(" .")
+
+        if not re.fullmatch(
+            sex_pattern,
+            candidate_name,
+            flags=re.IGNORECASE,
+        ):
+            name = candidate_name
+
+        sex = named_match.group("sex").strip()
         sire = named_match.group("sire").strip()
+
     elif unnamed_match:
-        sex = unnamed_match.group("sex").strip(" .")
+        sex = unnamed_match.group("sex").strip()
         sire = unnamed_match.group("sire").strip()
 
-    starts_match = re.search(r"\b(\d+)\s+sts?\b", record, flags=re.IGNORECASE)
-    wins_match = re.search(r"\b(\d+)\s+wins?\b", record, flags=re.IGNORECASE)
+    starts_match = re.search(
+        r"\b(\d+)\s+sts?\b",
+        record,
+        flags=re.IGNORECASE,
+    )
+
+    wins_match = re.search(
+        r"\b(\d+)\s+wins?\b",
+        record,
+        flags=re.IGNORECASE,
+    )
 
     earnings_match = None
+
     if starts_match or wins_match:
         race_record_text = re.split(
             r"\s+\d{2}[A-Z]{3,}\b",
@@ -684,10 +622,23 @@ def parse_produce_record(record: str) -> dict[str, Any]:
             maxsplit=1,
             flags=re.IGNORECASE,
         )[0]
-        earnings_match = re.search(r"\$([\d,]+)", race_record_text)
 
-    cpi_match = re.search(r"\[([\d.]+)\s*CPI\]", record, flags=re.IGNORECASE)
-    equibase_match = re.search(r"\(\s*E\s+(\d+)\s*\)", record, flags=re.IGNORECASE)
+        earnings_match = re.search(
+            r"\$([\d,]+)",
+            race_record_text,
+        )
+
+    cpi_match = re.search(
+        r"\[([\d.]+)\s*CPI\]",
+        record,
+        flags=re.IGNORECASE,
+    )
+
+    equibase_match = re.search(
+        r"\(\s*E\s+(\d+)\s*\)",
+        record,
+        flags=re.IGNORECASE,
+    )
 
     thorograph_match = re.search(
         r"ThoroGraph\s+"
@@ -699,44 +650,56 @@ def parse_produce_record(record: str) -> dict[str, Any]:
         flags=re.IGNORECASE,
     )
 
-    sale_history = []
-    for segment in split_bullet_segments(record):
-        parsed_sale = parse_sale_history_entry(segment)
-        if parsed_sale.get("sale_code"):
-            sale_history.append(parsed_sale)
+    sale_match = re.search(
+        r"\b(\d{2}[A-Z]{3,})\s+\$([\d,]+)",
+        record,
+        flags=re.IGNORECASE,
+    )
 
     consignor_match = re.search(
-        r"Consignor:\s*([^;•]+)",
+        r"Consignor:\s*([^;]+)",
         record,
         flags=re.IGNORECASE,
     )
+
     buyer_match = re.search(
-        r"Buyer:\s*([^;•]+)",
+        r"Buyer:\s*([^;]+)",
         record,
         flags=re.IGNORECASE,
     )
-    pedigree_match = re.search(r"\{([^}]+)\}\s*$", record)
+
+    pedigree_match = re.search(
+        r"\{([^}]+)\}\s*$",
+        record,
+    )
 
     status = None
+
     if re.search(r"\bUnraced\b", record, flags=re.IGNORECASE):
         status = "Unraced"
     elif starts_match:
         status = "Raced"
 
     performance_text = None
+
     if cpi_match:
         after_cpi = record[cpi_match.end():]
         performance_end = len(after_cpi)
+
         thorograph_index = re.search(
             r"\bThoroGraph\b",
             after_cpi,
             flags=re.IGNORECASE,
         )
+
         if thorograph_index:
             performance_end = thorograph_index.start()
-        performance_text = after_cpi[:performance_end].strip(" ,;-") or None
 
-    first_sale = sale_history[0] if sale_history else {}
+        performance_text = (
+            after_cpi[:performance_end]
+            .strip(" ,;-")
+            or None
+        )
 
     return {
         "year": year,
@@ -756,12 +719,8 @@ def parse_produce_record(record: str) -> dict[str, Any]:
             "4yo": thorograph_match.group(3).strip() if thorograph_match else None,
             "5yo+": thorograph_match.group(4).strip() if thorograph_match else None,
         },
-        "sale_code": first_sale.get("sale_code"),
-        "sale_name": first_sale.get("sale_name"),
-        "sale_year": first_sale.get("sale_year"),
-        "sale_price": first_sale.get("price"),
-        "sale_rna": first_sale.get("rna"),
-        "sale_history": sale_history,
+        "sale_code": sale_match.group(1) if sale_match else None,
+        "sale_price": f"${sale_match.group(2)}" if sale_match else None,
         "consignor": consignor_match.group(1).strip() if consignor_match else None,
         "buyer": buyer_match.group(1).strip() if buyer_match else None,
         "pedigree_note": pedigree_match.group(1).strip() if pedigree_match else None,
@@ -1042,7 +1001,7 @@ def render_produce_card(
             for value in thorograph.values()
         ):
             st.markdown(
-                "##### Thoro-Graph Performance"
+                "##### ThoroGraph"
             )
 
             tg_columns = st.columns(4)
@@ -1070,8 +1029,14 @@ def render_produce_card(
                     key
                 )
 
-                display = format_thorograph_value(
-                    value
+                display = (
+                    "—"
+                    if value in (
+                        None,
+                        "",
+                        "-",
+                    )
+                    else value
                 )
 
                 with column:
@@ -1080,47 +1045,42 @@ def render_produce_card(
                         display,
                     )
 
-            st.caption(
-                "Lower Thoro-Graph figures indicate stronger performances. "
-                "Quarter-point notation has been converted for readability."
+        if (
+            parsed["sale_code"]
+            or parsed["sale_price"]
+            or parsed["consignor"]
+            or parsed["buyer"]
+        ):
+            st.markdown(
+                "##### Sale History"
             )
 
-        if parsed.get("sale_history"):
-            st.markdown("##### Sale History")
+            sale_parts = []
 
-            for sale in parsed["sale_history"]:
-                sale_name = (
-                    sale.get("sale_name")
-                    or sale.get("sale_code")
-                    or "Sale"
+            if parsed["sale_code"]:
+                sale_parts.append(
+                    parsed["sale_code"]
                 )
-                sale_year = sale.get("sale_year")
-                heading = " · ".join(
-                    value
-                    for value in [sale_year, sale_name]
-                    if value
-                ) or "Sale"
 
-                price_text = sale.get("price") or "Price not listed"
-                if sale.get("rna"):
-                    price_text += " · RNA"
+            if parsed["sale_price"]:
+                sale_parts.append(
+                    parsed["sale_price"]
+                )
 
+            if sale_parts:
                 st.markdown(
-                    f"**{heading} · {price_text}**"
+                    f"**{' · '.join(sale_parts)}**"
                 )
 
-                if sale.get("consignor"):
-                    st.caption(
-                        f"Consignor: {sale['consignor']}"
-                    )
-                if sale.get("buyer"):
-                    st.caption(
-                        f"Buyer: {sale['buyer']}"
-                    )
-                if sale.get("for_party"):
-                    st.caption(
-                        f"For: {sale['for_party']}"
-                    )
+            if parsed["consignor"]:
+                st.caption(
+                    f"Consignor: {parsed['consignor']}"
+                )
+
+            if parsed["buyer"]:
+                st.caption(
+                    f"Buyer: {parsed['buyer']}"
+                )
 
         if parsed["pedigree_note"]:
             st.caption(
@@ -1347,7 +1307,7 @@ def render_ai_summary_panel(horse: pd.Series) -> None:
             )
 
     st.caption(
-        "Generated from the supplied Keeneland and catalog research data. "
+        "Generated from the supplied Keeneland September catalog data. "
         "This summary does not predict racing performance or sale value."
     )
 
@@ -1434,7 +1394,7 @@ def render_sales_video(
     video_url: Any,
 ) -> None:
     """
-    Render the Keeneland Vimeo sales video when available.
+    Render the sales video when available.
     """
     if video_url is None:
         return
@@ -1453,7 +1413,7 @@ def render_sales_video(
     # Extract Vimeo video ID from URLs such as:
     # https://vimeo.com/1213418917
     vimeo_match = re.search(
-        r"(?:player\.)?vimeo\.com/(?:video/)?(\d+)",
+        r"vimeo\.com/(\d+)",
         video_url,
     )
 
@@ -1509,7 +1469,7 @@ def render_catalog_pdf_link(pdf_url: Any) -> None:
         box-sizing:border-box;
         margin-top:0.85rem;
         padding:0.82rem 1rem;
-        background-color:#000000;
+        background-color:#15392F;
         color:white;
         text-decoration:none;
         border-radius:8px;
@@ -1561,7 +1521,7 @@ def render_sale_result_panel(horse: pd.Series) -> None:
                 display:inline-block;
                 margin-top:0.4rem;
                 margin-bottom:0.75rem;
-                background:#000000;
+                background:#15392F;
                 color:#FFFFFF;
                 border-radius:999px;
                 padding:0.48rem 0.9rem;
@@ -1591,7 +1551,7 @@ def render_sale_result_panel(horse: pd.Series) -> None:
                 margin-bottom:0.8rem;
             ">
                 <div style="
-                    color:#000000;
+                    color:#15392F;
                     font-size:0.78rem;
                     font-weight:800;
                     letter-spacing:0.06em;
@@ -1601,7 +1561,7 @@ def render_sale_result_panel(horse: pd.Series) -> None:
                     Sale Result
                 </div>
                 <div style="
-                    color:#000000;
+                    color:#15392F;
                     font-size:1.3rem;
                     font-weight:800;
                     margin-bottom:0.25rem;
@@ -1660,40 +1620,73 @@ def render_sale_result_panel(horse: pd.Series) -> None:
         return
 
     if sale_status == "OUT":
-        st.markdown(
-            """
-            <div style="
-                border:1px solid #D1D5DB;
-                background:#F3F4F6;
-                border-radius:10px;
-                padding:0.85rem 1rem;
-                margin-bottom:0.8rem;
-            ">
+        # OUT is displayed as a full takeover in the photo area.
+        return
+
+
+
+def render_out_takeover(
+    hip_number: int,
+) -> None:
+    """
+    Replace the normal horse photo area with a prominent OUT treatment.
+    """
+    st.markdown(
+        f"""
+        <div style="
+            height:420px;
+            border-radius:14px;
+            background:#F3F4F6;
+            border:1px solid #D1D5DB;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            text-align:center;
+            box-sizing:border-box;
+        ">
+            <div>
                 <div style="
-                    color:#6B7280;
-                    font-size:0.78rem;
+                    font-size:0.9rem;
                     font-weight:800;
-                    letter-spacing:0.06em;
+                    letter-spacing:0.14em;
                     text-transform:uppercase;
-                    margin-bottom:0.25rem;
+                    color:#6B7280;
+                    margin-bottom:0.65rem;
                 ">
-                    Sale Result
+                    HIP {hip_number}
                 </div>
                 <div style="
-                    color:#4B5563;
-                    font-size:1.3rem;
-                    font-weight:800;
+                    font-size:4.25rem;
+                    line-height:1;
+                    font-weight:900;
+                    letter-spacing:0.04em;
+                    color:#374151;
                 ">
                     OUT
                 </div>
+                <div style="
+                    margin-top:0.9rem;
+                    color:#6B7280;
+                    font-size:0.95rem;
+                    font-weight:600;
+                ">
+                    Withdrawn from the sale
+                </div>
             </div>
-            """,
-            unsafe_allow_html=True,
-        )
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
 
 def render_horse_profile(horse: pd.Series) -> None:
     hip_number = int(horse["hip_number"])
+
+    if st.button("← Back to catalog"):
+        st.session_state["page"] = "catalog"
+        st.rerun()
+
+    st.divider()
 
     image_column, summary_column = st.columns(
         [1.2, 1],
@@ -1701,27 +1694,37 @@ def render_horse_profile(horse: pd.Series) -> None:
     )
 
     with image_column:
-        render_photo_gallery(
-            hip_number=hip_number,
-            photo_urls=horse.get("photo_urls", []),
-        )
+        sale_status = display_value(
+            horse.get("sale_status"),
+            "PENDING",
+        ).upper()
 
-        render_sales_video(
-            hip_number=hip_number,
-            video_url=horse.get("video_url"),
-        )
-
-        photo_count = horse.get("photo_count", 0)
-
-        try:
-            photo_count = int(photo_count)
-        except (TypeError, ValueError):
-            photo_count = 0
-
-        if photo_count > 1:
-            st.caption(
-                f"{photo_count} photos available for Hip {hip_number}"
+        if sale_status == "OUT":
+            render_out_takeover(
+                hip_number=hip_number,
             )
+        else:
+            render_photo_gallery(
+                hip_number=hip_number,
+                photo_urls=horse.get("photo_urls", []),
+            )
+
+            render_sales_video(
+                hip_number=hip_number,
+                video_url=horse.get("video_url"),
+            )
+
+            photo_count = horse.get("photo_count", 0)
+
+            try:
+                photo_count = int(photo_count)
+            except (TypeError, ValueError):
+                photo_count = 0
+
+            if photo_count > 1:
+                st.caption(
+                    f"{photo_count} photos available for Hip {hip_number}"
+                )
 
     with summary_column:
         sale_day = display_value(
@@ -1729,9 +1732,16 @@ def render_horse_profile(horse: pd.Series) -> None:
             "—",
         )
 
-        sale_date = format_profile_sale_date(
-            horse.get("sale_date")
+        book_number = display_value(
+            horse.get("book_number"),
+            "—",
         )
+
+        sale_date_value = horse.get("sale_date")
+        try:
+            sale_date = pd.to_datetime(sale_date_value).strftime("%b %d, %Y")
+        except (TypeError, ValueError):
+            sale_date = "—"
 
         sex_label = format_sex(
             horse.get("sex")
@@ -1748,11 +1758,11 @@ def render_horse_profile(horse: pd.Series) -> None:
         st.markdown(
             (
                 '<div class="wpt-profile-eyebrow">'
-                'KEENELAND SEPTEMBER YEARLING SALE'
+                'KEENELAND SEPTEMBER'
+                '<span class="wpt-profile-dot">•</span>'
+                f'BOOK {html.escape(book_number)}'
                 '<span class="wpt-profile-dot">•</span>'
                 f'DAY {html.escape(sale_day)}'
-                '<span class="wpt-profile-dot">•</span>'
-                f'{html.escape(sale_date)}'
                 '</div>'
             ),
             unsafe_allow_html=True,
@@ -1783,7 +1793,7 @@ def render_horse_profile(horse: pd.Series) -> None:
                 '<div style="margin-top:0.9rem; margin-bottom:0.6rem;">'
                 '<span style="'
                 'display:inline-block;'
-                'background:#000000;'
+                'background:#15392F;'
                 'color:#FFFFFF;'
                 'border-radius:999px;'
                 'padding:0.5rem 0.95rem;'
@@ -1802,7 +1812,9 @@ def render_horse_profile(horse: pd.Series) -> None:
         st.markdown(
             (
                 '<div class="wpt-profile-tags">'
-                f'<span class="wpt-profile-tag">Day {html.escape(sale_day)} · {html.escape(sale_date)}</span>'
+                f'<span class="wpt-profile-tag">Book {html.escape(book_number)}</span>'
+                f'<span class="wpt-profile-tag">Sale Day {html.escape(sale_day)}</span>'
+                f'<span class="wpt-profile-tag">{html.escape(sale_date)}</span>'
                 '</div>'
             ),
             unsafe_allow_html=True,
@@ -1813,32 +1825,22 @@ def render_horse_profile(horse: pd.Series) -> None:
             unsafe_allow_html=True,
         )
 
-        # Current sale location details
-        consignor = display_value(
-            horse.get("consignor"),
-            "—",
-        )
-
-        barn = display_value(
-            horse.get("barn"),
-            "—",
-        )
-
+        # Current Keeneland sale details
         sale_detail_1, sale_detail_2 = st.columns(
-            [2.2, 1],
+            [1, 1],
             gap="medium",
         )
 
         with sale_detail_1:
             render_metric_card(
-                "Consignor",
-                consignor,
+                "Book",
+                book_number,
             )
 
         with sale_detail_2:
             render_metric_card(
-                "Barn Location",
-                barn,
+                "Sale Date",
+                sale_date,
             )
 
         render_catalog_pdf_link(
