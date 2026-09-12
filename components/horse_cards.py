@@ -586,7 +586,7 @@ def render_horse_card(
                 f"""
                 <div class="wpt-horse-image-wrap"
                      style="
-                        height:285px;
+                        height:390px;
                         display:flex;
                         align-items:center;
                         justify-content:center;
@@ -638,7 +638,7 @@ def render_horse_card(
                 photo_url=horse.get(
                     "photo_url"
                 ),
-                image_height=285,
+                image_height=390,
             )
 
             badges_html = build_badges_html(
@@ -721,6 +721,37 @@ def render_horse_grid(
             "No horses matched the current filters."
         )
         return
+
+    page_size_options = [12, 20, 30, 50]
+
+    current_page_size = st.session_state.get(
+        "catalog_page_size",
+        cards_per_page,
+    )
+
+    if current_page_size not in page_size_options:
+        current_page_size = 12
+
+    selected_page_size = st.selectbox(
+        "Horses per page",
+        options=page_size_options,
+        index=page_size_options.index(
+            current_page_size
+        ),
+        key="catalog_page_size_selector",
+    )
+
+    if selected_page_size != st.session_state.get(
+        "catalog_page_size"
+    ):
+        st.session_state[
+            "catalog_page_size"
+        ] = selected_page_size
+        st.session_state[
+            "catalog_page"
+        ] = 1
+
+    cards_per_page = selected_page_size
 
     total_pages = max(
         1,
