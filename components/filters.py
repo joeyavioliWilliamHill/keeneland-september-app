@@ -14,6 +14,7 @@ FILTER_STATE_KEYS = [
     "filter_sale_days",
     "filter_hip_range",
     "filter_photo_only",
+    "filter_wpt_shortlist",
     "filter_sexes",
     "filter_sires",
     "filter_broodmare_sires",
@@ -52,6 +53,18 @@ BOOK_LABELS = {
     4: "Book 4 · Sep 21–22",
     5: "Book 5 · Sep 23–24",
     6: "Book 6 · Sep 25–26",
+}
+
+
+# ============================================================
+# WPT SHORTLIST
+# ============================================================
+
+WPT_SHORTLIST_HIPS = {
+    1, 25, 26, 28, 36, 39, 47, 49, 52, 64,
+    68, 83, 88, 94, 98, 102, 104, 106, 111, 115,
+    116, 118, 122, 129, 140, 148, 149, 151, 154, 156,
+    160, 162, 176, 178, 180, 181, 184,
 }
 
 
@@ -204,6 +217,19 @@ def render_filters(
             "Hip, sire, dam, broodmare sire, breeder..."
         ),
         key="filter_search",
+    )
+
+    # --------------------------------------------------------
+    # WPT Shortlist
+    # --------------------------------------------------------
+
+    sidebar_section("West Point")
+
+    wpt_shortlist_only = st.sidebar.toggle(
+        f"WPT Shortlist · {len(WPT_SHORTLIST_HIPS)} horses",
+        value=False,
+        key="filter_wpt_shortlist",
+        help="Show only the current West Point shortlist.",
     )
 
     # --------------------------------------------------------
@@ -420,6 +446,7 @@ def render_filters(
         "sale_days": sale_days,
         "hip_range": hip_range,
         "photo_only": photo_only,
+        "wpt_shortlist_only": wpt_shortlist_only,
         "sexes": sexes,
         "sires": sires,
         "broodmare_sires": (
@@ -503,6 +530,22 @@ def apply_filters(
 
         filtered = filtered[
             search_mask
+        ]
+
+    # --------------------------------------------------------
+    # WPT Shortlist
+    # --------------------------------------------------------
+
+    if filters.get(
+        "wpt_shortlist_only",
+        False,
+    ):
+        hip_numbers = pd.to_numeric(
+            filtered["hip_number"],
+            errors="coerce",
+        )
+        filtered = filtered[
+            hip_numbers.isin(WPT_SHORTLIST_HIPS)
         ]
 
     # --------------------------------------------------------
