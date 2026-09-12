@@ -1002,6 +1002,82 @@ def main():
         f"{videos:,}"
     )
 
+    # ---------------------------------------------------------
+    # PHOTO DEBUGGING
+    # ---------------------------------------------------------
+    # Show exactly which hips Keeneland's JSON currently
+    # provides image URLs for. This does not change any data;
+    # it only prints diagnostics before the Postgres sync.
+    hips_with_photos = []
+    hips_without_photos = []
+
+    print()
+    print("PHOTO CHECK")
+    print("-----------")
+
+    for record in records:
+        hip = record["hip_number"]
+        main_image = record.get("main_image_url")
+        processed_image = record.get("processed_image_url")
+        photo_urls = record.get("photo_urls") or []
+
+        if photo_urls:
+            hips_with_photos.append(hip)
+            print(
+                f"PHOTO FOUND | Hip {hip} | "
+                f"main={main_image} | "
+                f"processed={processed_image} | "
+                f"all={photo_urls}"
+            )
+        else:
+            hips_without_photos.append(hip)
+            print(f"NO PHOTO    | Hip {hip}")
+
+    print()
+    print("PHOTO SUMMARY")
+    print("-------------")
+    print(
+        f"Horses with photos:    "
+        f"{len(hips_with_photos):,}"
+    )
+    print(
+        f"Horses without photos: "
+        f"{len(hips_without_photos):,}"
+    )
+
+    print()
+    print("HIP 2 SOURCE CHECK")
+    print("------------------")
+
+    hip_2 = next(
+        (
+            record
+            for record in records
+            if record["hip_number"] == 2
+        ),
+        None,
+    )
+
+    if hip_2:
+        print(
+            f"Main image:      "
+            f"{hip_2.get('main_image_url')}"
+        )
+        print(
+            f"Processed image: "
+            f"{hip_2.get('processed_image_url')}"
+        )
+        print(
+            f"Photo URLs:      "
+            f"{hip_2.get('photo_urls')}"
+        )
+        print(
+            f"Video URLs:      "
+            f"{hip_2.get('video_urls')}"
+        )
+    else:
+        print("Hip 2 was not present in the Keeneland feed.")
+
     print()
     print(
         "Starting Postgres sync..."
