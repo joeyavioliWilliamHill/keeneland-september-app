@@ -223,14 +223,51 @@ def render_filters(
     # WPT Shortlist
     # --------------------------------------------------------
 
-    sidebar_section("West Point")
+    shortlist_active = bool(
+        st.session_state.get("filter_wpt_shortlist", False)
+    )
+    bg = "#15392F" if shortlist_active else "#F3E8C8"
+    border = "#15392F" if shortlist_active else "#C8A96B"
+    title_color = "#FFFFFF" if shortlist_active else "#15392F"
+    sub_color = "#E7F0EC" if shortlist_active else "#6B5A2B"
+
+    st.sidebar.markdown(
+        f"""
+        <div style="
+            margin-top:0.2rem;
+            margin-bottom:0.35rem;
+            padding:0.9rem;
+            border:1px solid {border};
+            border-left:5px solid #C8A96B;
+            border-radius:12px;
+            background:{bg};
+        ">
+            <div style="
+                color:{title_color};
+                font-size:0.92rem;
+                font-weight:900;
+                letter-spacing:0.08em;
+            ">★ WPT SHORTLIST</div>
+            <div style="
+                color:{sub_color};
+                font-size:0.82rem;
+                font-weight:600;
+                margin-top:0.22rem;
+            ">{len(WPT_SHORTLIST_HIPS)} selected horses</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
     wpt_shortlist_only = st.sidebar.toggle(
-        f"WPT Shortlist · {len(WPT_SHORTLIST_HIPS)} horses",
+        "Show WPT Shortlist",
         value=False,
         key="filter_wpt_shortlist",
         help="Show only the current West Point shortlist.",
     )
+
+    if wpt_shortlist_only:
+        st.sidebar.caption("✓ Shortlist mode is active")
 
     # --------------------------------------------------------
     # Keeneland Sale Structure

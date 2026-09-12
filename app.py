@@ -275,11 +275,7 @@ def render_profile_navigation(
     total_catalog_horses: int,
 ) -> None:
     """
-    Render profile-level catalog navigation.
-
-    The supplied horse dataframe is already the correct
-    navigation universe: either the user's filtered results
-    or the complete Keeneland catalog.
+    Render a compact single-row profile navigation bar.
     """
     available_columns = [
         column
@@ -295,23 +291,13 @@ def render_profile_navigation(
     ]
 
     ordered_horses = (
-        horses[
-            available_columns
-        ]
-        .dropna(
-            subset=[
-                "hip_number"
-            ]
-        )
-        .reset_index(
-            drop=True
-        )
+        horses[available_columns]
+        .dropna(subset=["hip_number"])
+        .reset_index(drop=True)
     )
 
     hip_numbers = (
-        ordered_horses[
-            "hip_number"
-        ]
+        ordered_horses["hip_number"]
         .astype(int)
         .tolist()
     )
@@ -319,39 +305,52 @@ def render_profile_navigation(
     if selected_hip not in hip_numbers:
         return
 
-    current_index = hip_numbers.index(
-        selected_hip
-    )
+    current_index = hip_numbers.index(selected_hip)
 
-    previous_hip = (
-        hip_numbers[
-            current_index - 1
-        ]
-        if current_index > 0
-        else None
-    )
+    # Warm Keeneland/WPT navigation band.
+    st.markdown(
+        """
+        <style>
+        div[data-testid="stVerticalBlockBorderWrapper"]:has(
+            #wpt-profile-nav-marker
+        ) {
+            background: #F3E8C8;
+            border: 1px solid #C8A96B;
+            border-radius: 14px;
+            padding: 0.65rem 0.8rem 0.45rem 0.8rem;
+            margin-bottom: 0.75rem;
+        }
 
-    next_hip = (
-        hip_numbers[
-            current_index + 1
-        ]
-        if (
-            current_index
-            < len(hip_numbers) - 1
-        )
-        else None
+        div[data-testid="stVerticalBlockBorderWrapper"]:has(
+            #wpt-profile-nav-marker
+        ) button {
+            border-color: #15392F;
+            font-weight: 750;
+        }
+
+        div[data-testid="stVerticalBlockBorderWrapper"]:has(
+            #wpt-profile-nav-marker
+        ) [data-testid="stCaptionContainer"] {
+            color: #5F5130;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
     )
 
     with st.container(
+        border=True,
         key="profile_sticky_nav",
     ):
-        # --------------------------------------------------------
-        # Back to catalog / result context
-        # --------------------------------------------------------
+        st.markdown(
+            '<span id="wpt-profile-nav-marker"></span>',
+            unsafe_allow_html=True,
+        )
 
-        back_column, context_column = st.columns(
-            [1.25, 3.75],
-            gap="medium",
+        back_column, slider_column = st.columns(
+            [1.05, 4.95],
+            gap="large",
+            vertical_alignment="center",
         )
 
         with back_column:
@@ -359,45 +358,34 @@ def render_profile_navigation(
                 "← Back to Catalog",
                 key="profile_back_to_catalog",
                 use_container_width=True,
-                type="primary",
             ):
                 go_to_catalog()
 
-        with context_column:
+        with slider_column:
             if using_filtered_context:
-                st.caption(
-                    f"Browsing {len(ordered_horses):,} filtered horses · "
-                    f"Hip {current_index + 1:,} of {len(ordered_horses):,} "
-                    "in these results"
+                context_text = (
+                    f"Browse horses · {len(ordered_horses):,} filtered "
+                    f"· Hip {current_index + 1:,} of {len(ordered_horses):,}"
                 )
             else:
-                st.caption(
-                    f"Browsing full catalog · "
-                    f"{total_catalog_horses:,} horses"
+                context_text = (
+                    f"Browse horses · full catalog "
+                    f"· {total_catalog_horses:,} horses"
                 )
 
-        # --------------------------------------------------------
-        # Horizontal hip navigation slider
-        # --------------------------------------------------------
+            st.caption(context_text)
 
-        st.markdown(
-            '<div class="wpt-hip-slider-label">Browse horses</div>',
-            unsafe_allow_html=True,
-        )
-
-        slider_hip = st.select_slider(
-            "Browse horses",
-            options=hip_numbers,
-            value=selected_hip,
-            format_func=lambda hip: f"Hip {hip}",
-            key=f"profile_hip_slider_{selected_hip}",
-            label_visibility="collapsed",
-        )
-
-        if int(slider_hip) != int(selected_hip):
-            go_to_horse(
-                int(slider_hip)
+            slider_hip = st.select_slider(
+                "Browse horses",
+                options=hip_numbers,
+                value=selected_hip,
+                format_func=lambda hip: f"Hip {hip}",
+                key=f"profile_hip_slider_{selected_hip}",
+                label_visibility="collapsed",
             )
+
+            if int(slider_hip) != int(selected_hip):
+                go_to_horse(int(slider_hip))
 
 
 # ============================================================
@@ -493,13 +481,6 @@ if (
             horses
         ),
     )
-
-    st.markdown(
-        '<div class="wpt-profile-nav-spacer"></div>',
-        unsafe_allow_html=True,
-    )
-
-    st.divider()
 
     render_horse_profile(
         selected_horse.iloc[0]

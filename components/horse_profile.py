@@ -1745,12 +1745,6 @@ def render_out_takeover(
 def render_horse_profile(horse: pd.Series) -> None:
     hip_number = int(horse["hip_number"])
 
-    if st.button("← Back to catalog"):
-        st.session_state["page"] = "catalog"
-        st.rerun()
-
-    st.divider()
-
     image_column, summary_column = st.columns(
         [1.2, 1],
         gap="large",
