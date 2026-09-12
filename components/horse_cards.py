@@ -586,7 +586,7 @@ def render_horse_card(
                 f"""
                 <div class="wpt-horse-image-wrap"
                      style="
-                        height:390px;
+                        height:460px;
                         display:flex;
                         align-items:center;
                         justify-content:center;
@@ -638,7 +638,7 @@ def render_horse_card(
                 photo_url=horse.get(
                     "photo_url"
                 ),
-                image_height=390,
+                image_height=460,
             )
 
             badges_html = build_badges_html(
@@ -795,15 +795,15 @@ def render_horse_grid(
     for row_start in range(
         0,
         len(page_horses),
-        3,
+        2,
     ):
         columns = st.columns(
-            3,
+            2,
             gap="large",
         )
 
         row_horses = page_horses.iloc[
-            row_start:row_start + 3
+            row_start:row_start + 2
         ]
 
         for column, (_, horse) in zip(
