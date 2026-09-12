@@ -1394,7 +1394,14 @@ def render_sales_video(
     video_url: Any,
 ) -> None:
     """
-    Render the sales video when available.
+    Render the Keeneland sales video when available.
+
+    Supports:
+    - YouTube embed URLs
+    - YouTube watch URLs
+    - YouTube short URLs
+    - Vimeo URLs
+    - Vimeo player URLs
     """
     if video_url is None:
         return
@@ -1410,23 +1417,79 @@ def render_sales_video(
     if not video_url:
         return
 
-    # Extract Vimeo video ID from URLs such as:
-    # https://vimeo.com/1213418917
-    vimeo_match = re.search(
-        r"vimeo\.com/(\d+)",
+    embed_url = None
+
+    # --------------------------------------------------
+    # YouTube
+    # --------------------------------------------------
+
+    youtube_embed_match = re.search(
+        r"(?:www\.)?youtube\.com/embed/([A-Za-z0-9_-]+)",
         video_url,
+        flags=re.IGNORECASE,
     )
 
-    if not vimeo_match:
-        st.caption("Sales video is currently unavailable.")
-        return
+    youtube_watch_match = re.search(
+        r"(?:www\.)?youtube\.com/watch\?.*?[?&]?v=([A-Za-z0-9_-]+)",
+        video_url,
+        flags=re.IGNORECASE,
+    )
 
-    video_id = vimeo_match.group(1)
+    youtube_short_match = re.search(
+        r"(?:www\.)?youtu\.be/([A-Za-z0-9_-]+)",
+        video_url,
+        flags=re.IGNORECASE,
+    )
+
+    if youtube_embed_match:
+        video_id = youtube_embed_match.group(1)
+        embed_url = (
+            f"https://www.youtube.com/embed/{video_id}"
+        )
+
+    elif youtube_watch_match:
+        video_id = youtube_watch_match.group(1)
+        embed_url = (
+            f"https://www.youtube.com/embed/{video_id}"
+        )
+
+    elif youtube_short_match:
+        video_id = youtube_short_match.group(1)
+        embed_url = (
+            f"https://www.youtube.com/embed/{video_id}"
+        )
+
+    # --------------------------------------------------
+    # Vimeo
+    # --------------------------------------------------
+
+    if embed_url is None:
+        vimeo_match = re.search(
+            r"(?:player\.)?vimeo\.com/(?:video/)?(\d+)",
+            video_url,
+            flags=re.IGNORECASE,
+        )
+
+        if vimeo_match:
+            video_id = vimeo_match.group(1)
+            embed_url = (
+                f"https://player.vimeo.com/video/{video_id}"
+            )
+
+    # --------------------------------------------------
+    # Unsupported URL
+    # --------------------------------------------------
+
+    if embed_url is None:
+        st.caption(
+            "Sales video is currently unavailable."
+        )
+        return
 
     st.markdown("### 🎥 Sales Video")
 
     components.iframe(
-        f"https://player.vimeo.com/video/{video_id}",
+        embed_url,
         height=420,
         scrolling=False,
     )
