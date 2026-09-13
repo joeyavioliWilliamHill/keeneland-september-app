@@ -3,7 +3,15 @@ from pathlib import Path
 import pandas as pd
 import streamlit as st
 import streamlit.components.v1 as components
+from streamlit_cookies_controller import CookieController
 
+from components.activity import (
+    log_catalog_view,
+    log_horse_view,
+    log_session_start,
+    start_or_touch_session,
+)
+from components.auth import require_login, render_user_menu
 from components.filters import (
     apply_filters,
     render_filters,
@@ -23,6 +31,9 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
+
+
+cookie_controller = CookieController()
 
 
 # ============================================================
@@ -394,10 +405,19 @@ def render_profile_navigation(
 
 load_css()
 
+# Email gate + 30-day remembered browser cookie.
+require_login(cookie_controller)
+
 if "page" not in st.session_state:
     st.session_state[
         "page"
     ] = "catalog"
+
+# Analytics must never prevent the catalog from loading.
+try:
+    log_session_start()
+except Exception:
+    pass
 
 
 # ============================================================
@@ -440,6 +460,15 @@ if (
     selected_hip = int(
         selected_hip
     )
+
+    try:
+        log_horse_view(selected_hip)
+        start_or_touch_session(
+            page="profile",
+            hip_number=selected_hip,
+        )
+    except Exception:
+        pass
 
     scroll_profile_to_top(
         selected_hip
@@ -492,6 +521,15 @@ if (
 # ============================================================
 
 else:
+    try:
+        log_catalog_view()
+        start_or_touch_session(
+            page="catalog",
+            hip_number=None,
+        )
+    except Exception:
+        pass
+
     # --------------------------------------------------------
     # Sidebar filters
     # --------------------------------------------------------
@@ -530,6 +568,10 @@ else:
         </div>
         """,
         unsafe_allow_html=True,
+    )
+
+    render_user_menu(
+        cookie_controller
     )
 
     # --------------------------------------------------------

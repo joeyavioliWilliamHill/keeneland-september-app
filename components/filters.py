@@ -65,6 +65,9 @@ WPT_SHORTLIST_HIPS = {
     68, 83, 88, 94, 98, 102, 104, 106, 111, 115,
     116, 118, 122, 129, 140, 148, 149, 151, 154, 156,
     160, 162, 176, 178, 180, 181, 184,
+    197, 218, 238, 242, 245, 265, 268, 272, 278, 286,
+    292, 294, 296, 301, 303, 306, 313, 314, 319, 322,
+    328, 337, 341, 351, 357, 362, 363, 368,
 }
 
 
@@ -132,16 +135,20 @@ def sidebar_section(title: str) -> None:
 
 def render_sidebar_brand() -> None:
     """
-    Render Keeneland catalog branding.
+    Render a compact polished West Point / Keeneland brand panel
+    at the top of the sidebar.
     """
+    brand_html = """
+<div style="background:linear-gradient(145deg,#0F332B 0%,#15392F 100%);border:1px solid #B8934F;border-top:5px solid #C8A96B;border-radius:14px;padding:0.9rem 0.95rem 0.85rem 0.95rem;margin:0.15rem 0 0.9rem 0;box-shadow:0 5px 14px rgba(15,51,43,0.13);">
+  <div style="color:#F7F2E7;font-size:1.05rem;line-height:1.1;font-weight:900;letter-spacing:0.10em;">★ WEST POINT</div>
+  <div style="color:#D3B56F;font-size:0.68rem;font-weight:800;letter-spacing:0.18em;text-transform:uppercase;margin-top:0.18rem;">THOROUGHBREDS</div>
+  <div style="height:1px;background:rgba(211,181,111,0.45);margin:0.65rem 0 0.6rem 0;"></div>
+  <div style="color:#FFFFFF;font-size:0.88rem;font-weight:750;line-height:1.25;">Keeneland September Yearlings</div>
+  <div style="color:#D8E3DF;font-size:0.72rem;line-height:1.35;margin-top:0.18rem;">2026 Keeneland September Yearling Sale</div>
+</div>
+"""
     st.sidebar.markdown(
-        """
-        West Point Thoroughbreds
-
-        Keeneland September Yearlings
-
-        2026 Keeneland September Yearling Sale
-        """,
+        brand_html,
         unsafe_allow_html=True,
     )
 
