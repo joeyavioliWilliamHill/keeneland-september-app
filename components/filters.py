@@ -153,6 +153,11 @@ def render_sidebar_brand() -> None:
     )
 
 
+def reset_catalog_page() -> None:
+    """Return catalog pagination to page 1 when a filter changes."""
+    st.session_state["catalog_page"] = 1
+
+
 def reset_filters() -> None:
     """
     Reset only filter-related session state.
@@ -224,6 +229,7 @@ def render_filters(
             "Hip, sire, dam, broodmare sire, breeder..."
         ),
         key="filter_search",
+        on_change=reset_catalog_page,
     )
 
     # --------------------------------------------------------
@@ -527,54 +533,80 @@ def apply_filters(
     # Search
     # --------------------------------------------------------
 
-    search_text = (
-        filters
-        .get(
+    search_text = str(
+        filters.get(
             "search_text",
             "",
         )
-        .lower()
-    )
+        or ""
+    ).strip().lower()
 
     if search_text:
-        searchable_columns = [
-            "hip_number",
-            "catalog_label",
-            "sire",
-            "dam",
-            "broodmare_sire",
-            "breeder",
-            "first_dam_summary",
-            "first_dam_record",
-            "nicking_summary",
-        ]
-
-        search_mask = pd.Series(
-            False,
-            index=filtered.index,
-        )
-
-        for column in searchable_columns:
-            if column not in filtered.columns:
-                continue
-
-            search_mask = (
-                search_mask
-                | (
-                    filtered[column]
-                    .fillna("")
-                    .astype(str)
-                    .str.lower()
-                    .str.contains(
-                        search_text,
-                        regex=False,
-                    )
-                )
+        normalized_hip_search = search_text
+        if normalized_hip_search.startswith("hip"):
+            normalized_hip_search = (
+                normalized_hip_search
+                .replace("hip", "", 1)
+                .strip()
+                .lstrip("#")
+                .strip()
             )
 
-        filtered = filtered[
-            search_mask
-        ]
+        if normalized_hip_search.isdigit():
+            searched_hip = int(normalized_hip_search)
+            hip_numbers = pd.to_numeric(
+                filtered["hip_number"],
+                errors="coerce",
+            )
+            filtered = filtered[
+                hip_numbers.eq(searched_hip)
+            ]
+
+        else:
+            searchable_columns = [
+                "catalog_label",
+                "sire",
+                "dam",
+                "broodmare_sire",
+                "breeder",
+                "consignor",
+                "consignor_name",
+            ]
+
+            available_columns = [
+                column
+                for column in searchable_columns
+                if column in filtered.columns
+            ]
+
+            if available_columns:
+                search_mask = pd.Series(
+                    False,
+                    index=filtered.index,
+                )
+
+                for column in available_columns:
+                    values = (
+                        filtered[column]
+                        .fillna("")
+                        .astype(str)
+                        .str.lower()
+                    )
+
+                    search_mask = (
+                        search_mask
+                        | values.str.contains(
+                            search_text,
+                            regex=False,
+                            na=False,
+                        )
+                    )
+
+                filtered = filtered[
+                    search_mask
+                ]
+            else:
+                filtered = filtered.iloc[0:0]
 
     # --------------------------------------------------------
     # WPT Shortlist
