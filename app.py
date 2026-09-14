@@ -18,6 +18,10 @@ from components.filters import (
 )
 from components.horse_cards import render_horse_grid
 from components.horse_profile import render_horse_profile
+from components.usage_dashboard import (
+    is_usage_admin,
+    render_usage_dashboard,
+)
 from database import load_horses
 
 
@@ -418,6 +422,35 @@ try:
     log_session_start()
 except Exception:
     pass
+
+# Private usage analytics navigation.
+if is_usage_admin():
+    st.sidebar.markdown("---")
+
+    if st.session_state["page"] == "usage":
+        if st.sidebar.button(
+            "← Back to Catalog",
+            key="usage_back_to_catalog",
+            use_container_width=True,
+        ):
+            st.session_state["page"] = "catalog"
+            st.rerun()
+    else:
+        if st.sidebar.button(
+            "📊 Usage Analytics",
+            key="open_usage_analytics",
+            use_container_width=True,
+        ):
+            st.session_state["page"] = "usage"
+            st.rerun()
+
+# Admin-only analytics page does not need to load the horse catalog.
+if st.session_state["page"] == "usage":
+    render_user_menu(
+        cookie_controller
+    )
+    render_usage_dashboard()
+    st.stop()
 
 
 # ============================================================
