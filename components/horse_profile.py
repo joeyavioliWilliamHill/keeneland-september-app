@@ -1328,6 +1328,7 @@ def render_photo_gallery(
         render_horse_image(
             hip_number=hip_number,
             photo_url=None,
+            image_height=560,
         )
         return
 
@@ -1345,6 +1346,7 @@ def render_photo_gallery(
     render_horse_image(
         hip_number=hip_number,
         photo_url=clean_urls[current_index],
+        image_height=560,
     )
 
     if len(clean_urls) == 1:
@@ -1490,7 +1492,7 @@ def render_sales_video(
 
     components.iframe(
         embed_url,
-        height=420,
+        height=540,
         scrolling=False,
     )
 
@@ -1697,7 +1699,7 @@ def render_out_takeover(
     st.markdown(
         f"""
         <div style="
-            height:420px;
+            height:560px;
             border-radius:14px;
             background:#F3F4F6;
             border:1px solid #D1D5DB;
@@ -1746,7 +1748,7 @@ def render_horse_profile(horse: pd.Series) -> None:
     hip_number = int(horse["hip_number"])
 
     image_column, summary_column = st.columns(
-        [1.2, 1],
+        [1.45, 1],
         gap="large",
     )
 
