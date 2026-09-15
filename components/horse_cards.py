@@ -259,6 +259,41 @@ def render_horse_image(
 
 
 # ============================================================
+# LIVE SALE RESULT HELPERS
+# ============================================================
+
+def sale_result_values(horse: pd.Series) -> tuple[str, Any, str, bool]:
+    """Derive sale presentation directly from Keeneland result fields."""
+    price = horse.get("sale_price")
+    buyer = display_value(
+        horse.get("buyer_name", horse.get("purchaser")),
+        "",
+    )
+
+    is_out = bool(horse.get("is_out", False))
+    is_rna = bool(horse.get("rna_indicator", False))
+
+    if is_out:
+        status = "OUT"
+    elif is_rna:
+        status = "NOT SOLD"
+    else:
+        try:
+            has_price = price is not None and not pd.isna(price)
+        except (TypeError, ValueError):
+            has_price = price is not None
+
+        status = "SOLD" if has_price else "PENDING"
+
+    is_wpt_purchase = (
+        status == "SOLD"
+        and "west point" in buyer.lower()
+    )
+
+    return status, price, buyer, is_wpt_purchase
+
+
+# ============================================================
 # BADGES
 # ============================================================
 
@@ -278,12 +313,9 @@ def build_badges_html(
     # WPT Purchase
     # --------------------------------------------------------
 
-    if bool(
-        horse.get(
-            "wpt_purchase",
-            False,
-        )
-    ):
+    _, _, _, is_wpt_purchase = sale_result_values(horse)
+
+    if is_wpt_purchase:
         badges.append(
             (
                 "🏆 WPT PURCHASE",
@@ -295,16 +327,7 @@ def build_badges_html(
     # Sale Result
     # --------------------------------------------------------
 
-    sale_status = display_value(
-        horse.get(
-            "sale_status"
-        ),
-        "PENDING",
-    ).upper()
-
-    sale_price = horse.get(
-        "sale_price"
-    )
+    sale_status, sale_price, _, _ = sale_result_values(horse)
 
     if sale_status == "SOLD":
         badges.append(
@@ -574,12 +597,7 @@ def render_horse_card(
     with st.container(
         border=True
     ):
-        sale_status = display_value(
-            horse.get(
-                "sale_status"
-            ),
-            "PENDING",
-        ).upper()
+        sale_status, _, _, _ = sale_result_values(horse)
 
         if sale_status == "OUT":
             render_html(

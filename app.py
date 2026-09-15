@@ -66,6 +66,69 @@ def load_css() -> None:
         )
 
 
+
+CATALOG_FILTER_BACKUP_KEY = "_catalog_filter_state"
+CATALOG_VIEW_BACKUP_KEY = "_catalog_view_state"
+
+
+def save_catalog_state() -> None:
+    """
+    Persist catalog filters outside Streamlit widget state.
+
+    Streamlit removes widget state when those widgets are not rendered
+    (for example while viewing a horse profile). Keeping a separate copy
+    lets us restore the exact filtered catalog when the user comes back.
+    """
+    filter_state = {
+        key: value
+        for key, value in st.session_state.items()
+        if key.startswith("filter_")
+    }
+
+    if filter_state:
+        st.session_state[
+            CATALOG_FILTER_BACKUP_KEY
+        ] = filter_state
+
+    view_state = {}
+
+    for key in (
+        "catalog_page",
+        "catalog_page_size",
+        "catalog_page_size_selector",
+    ):
+        if key in st.session_state:
+            view_state[key] = st.session_state[key]
+
+    if view_state:
+        st.session_state[
+            CATALOG_VIEW_BACKUP_KEY
+        ] = view_state
+
+
+def restore_catalog_state() -> None:
+    """
+    Restore saved catalog filters and pagination before widgets render.
+    """
+    filter_state = st.session_state.get(
+        CATALOG_FILTER_BACKUP_KEY,
+        {},
+    )
+
+    for key, value in filter_state.items():
+        if key not in st.session_state:
+            st.session_state[key] = value
+
+    view_state = st.session_state.get(
+        CATALOG_VIEW_BACKUP_KEY,
+        {},
+    )
+
+    for key, value in view_state.items():
+        if key not in st.session_state:
+            st.session_state[key] = value
+
+
 def scroll_profile_to_top(
     selected_hip: int,
 ) -> None:
@@ -131,8 +194,11 @@ def go_to_horse(
     hip_number: int,
 ) -> None:
     """
-    Navigate directly to a horse profile.
+    Navigate directly to a horse profile while preserving
+    the current catalog filters and pagination.
     """
+    save_catalog_state()
+
     st.session_state[
         "selected_hip"
     ] = int(hip_number)
@@ -160,6 +226,85 @@ def go_to_catalog() -> None:
 
     st.rerun()
 
+
+
+KEENELAND_LIVE_URL = (
+    "https://www.keeneland.com/sales/2026/12/"
+    "september-yearling-sale/watch-live/"
+)
+
+
+def go_to_live() -> None:
+    """Open the live-sale page while preserving catalog state."""
+    if st.session_state.get("page") == "catalog":
+        save_catalog_state()
+
+    st.session_state["page"] = "live"
+    st.rerun()
+
+
+def render_live_navigation() -> None:
+    """Render the public Watch Live navigation control."""
+    st.sidebar.markdown("---")
+
+    if st.session_state["page"] == "live":
+        if st.sidebar.button(
+            "← Back to Catalog",
+            key="live_back_to_catalog",
+            use_container_width=True,
+        ):
+            go_to_catalog()
+    else:
+        if st.sidebar.button(
+            "📺 Watch Live",
+            key="open_watch_live",
+            use_container_width=True,
+        ):
+            go_to_live()
+
+
+def render_live_sale() -> None:
+    """Render Keeneland's official live-sale page with a fallback link."""
+    try:
+        start_or_touch_session(
+            page="live",
+            hip_number=None,
+        )
+    except Exception:
+        pass
+
+    st.title("📺 Keeneland Live")
+    st.markdown("## 2026 September Yearling Sale")
+    st.caption(
+        "Watch the Keeneland September sale from the official "
+        "Keeneland live-sale page."
+    )
+
+    st.link_button(
+        "Open Keeneland Live ↗",
+        KEENELAND_LIVE_URL,
+        use_container_width=False,
+    )
+
+    st.markdown(
+        """
+        <div style="
+            margin:0.35rem 0 0.8rem 0;
+            color:#64748B;
+            font-size:0.88rem;
+        ">
+            If the embedded stream does not load on your device,
+            use the button above to open Keeneland directly.
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    components.iframe(
+        KEENELAND_LIVE_URL,
+        height=850,
+        scrolling=True,
+    )
 
 def format_sale_date(
     value,
@@ -423,6 +568,9 @@ try:
 except Exception:
     pass
 
+# Public live-sale navigation.
+render_live_navigation()
+
 # Private usage analytics navigation.
 if is_usage_admin():
     st.sidebar.markdown("---")
@@ -450,6 +598,14 @@ if st.session_state["page"] == "usage":
         cookie_controller
     )
     render_usage_dashboard()
+    st.stop()
+
+# Watch Live also does not need to load the horse catalog.
+if st.session_state["page"] == "live":
+    render_user_menu(
+        cookie_controller
+    )
+    render_live_sale()
     st.stop()
 
 
@@ -567,9 +723,17 @@ else:
     # Sidebar filters
     # --------------------------------------------------------
 
+    # Restore the exact filter/widget state that was active before
+    # the user opened a horse profile.
+    restore_catalog_state()
+
     filters = render_filters(
         horses
     )
+
+    # Keep an independent copy because Streamlit removes widget
+    # state while those widgets are not rendered on the profile page.
+    save_catalog_state()
 
     filtered_horses = (
         apply_filters(

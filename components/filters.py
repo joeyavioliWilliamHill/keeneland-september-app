@@ -15,6 +15,7 @@ FILTER_STATE_KEYS = [
     "filter_hip_range",
     "filter_photo_only",
     "filter_wpt_shortlist",
+    "filter_wpt_purchases",
     "filter_sexes",
     "filter_sires",
     "filter_broodmare_sires",
@@ -283,6 +284,77 @@ def render_filters(
         st.sidebar.caption("✓ Shortlist mode is active")
 
     # --------------------------------------------------------
+    # WPT Purchases
+    # --------------------------------------------------------
+
+    buyer_names = (
+        horses["buyer_name"]
+        .fillna("")
+        .astype(str)
+        if "buyer_name" in horses.columns
+        else pd.Series("", index=horses.index)
+    )
+
+    wpt_purchase_count = int(
+        buyer_names.str.contains(
+            "West Point",
+            case=False,
+            regex=False,
+            na=False,
+        ).sum()
+    )
+
+    purchases_active = bool(
+        st.session_state.get("filter_wpt_purchases", False)
+    )
+
+    purchase_bg = "#15392F" if purchases_active else "#F7F2E7"
+    purchase_border = "#15392F" if purchases_active else "#C8A96B"
+    purchase_title = "#FFFFFF" if purchases_active else "#15392F"
+    purchase_sub = "#E7F0EC" if purchases_active else "#6B5A2B"
+
+    st.sidebar.markdown(
+        f"""
+        <div style="
+            margin-top:0.55rem;
+            margin-bottom:0.35rem;
+            padding:0.9rem;
+            border:1px solid {purchase_border};
+            border-left:5px solid #C8A96B;
+            border-radius:12px;
+            background:{purchase_bg};
+        ">
+            <div style="
+                color:{purchase_title};
+                font-size:0.92rem;
+                font-weight:900;
+                letter-spacing:0.08em;
+            ">🏆 WPT PURCHASES</div>
+            <div style="
+                color:{purchase_sub};
+                font-size:0.82rem;
+                font-weight:600;
+                margin-top:0.22rem;
+            ">{wpt_purchase_count} purchased horses</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    wpt_purchases_only = st.sidebar.toggle(
+        "Show WPT Purchases",
+        value=False,
+        key="filter_wpt_purchases",
+        help=(
+            "Show only horses whose official Keeneland buyer "
+            "includes West Point."
+        ),
+    )
+
+    if wpt_purchases_only:
+        st.sidebar.caption("✓ Purchase mode is active")
+
+    # --------------------------------------------------------
     # Keeneland Sale Structure
     # --------------------------------------------------------
 
@@ -497,6 +569,7 @@ def render_filters(
         "hip_range": hip_range,
         "photo_only": photo_only,
         "wpt_shortlist_only": wpt_shortlist_only,
+        "wpt_purchases_only": wpt_purchases_only,
         "sexes": sexes,
         "sires": sires,
         "broodmare_sires": (
@@ -623,6 +696,32 @@ def apply_filters(
         filtered = filtered[
             hip_numbers.isin(WPT_SHORTLIST_HIPS)
         ]
+
+    # --------------------------------------------------------
+    # WPT Purchases
+    # --------------------------------------------------------
+
+    if filters.get(
+        "wpt_purchases_only",
+        False,
+    ):
+        if "buyer_name" in filtered.columns:
+            buyer_names = (
+                filtered["buyer_name"]
+                .fillna("")
+                .astype(str)
+            )
+
+            filtered = filtered[
+                buyer_names.str.contains(
+                    "West Point",
+                    case=False,
+                    regex=False,
+                    na=False,
+                )
+            ]
+        else:
+            filtered = filtered.iloc[0:0]
 
     # --------------------------------------------------------
     # Book

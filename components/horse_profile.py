@@ -12,7 +12,8 @@ from components.horse_cards import (
     display_value,
     format_currency,
     format_sex,
-    render_horse_image
+    render_horse_image,
+    sale_result_values,
 )
 
 
@@ -1552,141 +1553,61 @@ def render_catalog_pdf_link(pdf_url: Any) -> None:
 
 
 def render_sale_result_panel(horse: pd.Series) -> None:
-    """
-    Render the current Keeneland sale result prominently
-    near the top of the horse profile.
+    """Render the live Keeneland result and WPT purchase treatment."""
+    sale_status, sale_price, buyer, wpt_purchase = sale_result_values(horse)
 
-    Pending horses intentionally show nothing.
-    """
-    sale_status = display_value(
-        horse.get("sale_status"),
-        "PENDING",
-    ).upper()
-
-    sale_price = horse.get("sale_price")
-    purchaser = display_value(
-        horse.get("purchaser"),
-        "",
-    )
-
-    wpt_purchase = bool(
-        horse.get(
-            "wpt_purchase",
-            False,
-        )
-    )
-
-    if sale_status == "PENDING":
+    if sale_status in {"PENDING", "OUT"}:
         return
+
+    price_text = format_currency(sale_price)
+    safe_buyer = html.escape(buyer)
 
     if wpt_purchase:
         st.markdown(
-            """
-            <div style="
-                display:inline-block;
-                margin-top:0.4rem;
-                margin-bottom:0.75rem;
-                background:#15392F;
-                color:#FFFFFF;
-                border-radius:999px;
-                padding:0.48rem 0.9rem;
-                font-size:0.82rem;
-                font-weight:800;
-                letter-spacing:0.07em;
-                text-transform:uppercase;
-            ">
-                🏆 WPT PURCHASE
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-
-    if sale_status == "SOLD":
-        price_text = format_currency(
-            sale_price
-        )
-
-        st.markdown(
             f"""
             <div style="
-                border:1px solid #B9D7C7;
-                background:#EEF7F2;
-                border-radius:10px;
-                padding:0.85rem 1rem;
-                margin-bottom:0.8rem;
+                border:2px solid #C8A96B;
+                background:linear-gradient(145deg,#0F332B 0%,#15392F 100%);
+                border-radius:14px;
+                padding:1rem 1.05rem;
+                margin:0.7rem 0 0.9rem 0;
+                box-shadow:0 5px 14px rgba(15,51,43,0.12);
             ">
-                <div style="
-                    color:#15392F;
-                    font-size:0.78rem;
-                    font-weight:800;
-                    letter-spacing:0.06em;
-                    text-transform:uppercase;
-                    margin-bottom:0.25rem;
-                ">
-                    Sale Result
+                <div style="color:#D3B56F;font-size:0.78rem;font-weight:900;
+                    letter-spacing:0.10em;text-transform:uppercase;margin-bottom:0.35rem;">
+                    ★ WPT PURCHASE
                 </div>
-                <div style="
-                    color:#15392F;
-                    font-size:1.3rem;
-                    font-weight:800;
-                    margin-bottom:0.25rem;
-                ">
+                <div style="color:#FFFFFF;font-size:1.55rem;font-weight:900;line-height:1.15;">
                     SOLD · {html.escape(price_text)}
                 </div>
-                {
-                    f'<div style="color:#475569; font-size:0.92rem;">'
-                    f'Purchaser: {html.escape(purchaser)}</div>'
-                    if purchaser
-                    else ""
-                }
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-
-        return
-
-    if sale_status == "NOT SOLD":
-        price_text = format_currency(
-            sale_price
-        )
-
-        st.markdown(
-            f"""
-            <div style="
-                border:1px solid #E7C98A;
-                background:#FFF7E8;
-                border-radius:10px;
-                padding:0.85rem 1rem;
-                margin-bottom:0.8rem;
-            ">
-                <div style="
-                    color:#8A5A00;
-                    font-size:0.78rem;
-                    font-weight:800;
-                    letter-spacing:0.06em;
-                    text-transform:uppercase;
-                    margin-bottom:0.25rem;
-                ">
-                    Sale Result
-                </div>
-                <div style="
-                    color:#8A5A00;
-                    font-size:1.3rem;
-                    font-weight:800;
-                ">
-                    NOT SOLD · {html.escape(price_text)}
+                <div style="color:#E6EEE9;font-size:0.88rem;line-height:1.4;margin-top:0.45rem;">
+                    Buyer: {safe_buyer}
                 </div>
             </div>
             """,
             unsafe_allow_html=True,
         )
-
         return
 
-    if sale_status == "OUT":
-        # OUT is displayed as a full takeover in the photo area.
-        return
+    if sale_status == "SOLD":
+        border, background, color, label = "#B9D7C7", "#EEF7F2", "#15392F", "SOLD"
+    else:
+        border, background, color, label = "#E7C98A", "#FFF7E8", "#8A5A00", "RNA / NOT SOLD"
+
+    st.markdown(
+        f"""
+        <div style="border:1px solid {border};background:{background};border-radius:12px;
+            padding:0.9rem 1rem;margin:0.7rem 0 0.9rem 0;">
+            <div style="color:{color};font-size:0.76rem;font-weight:800;letter-spacing:0.07em;
+                text-transform:uppercase;margin-bottom:0.25rem;">Sale Result</div>
+            <div style="color:{color};font-size:1.35rem;font-weight:900;">
+                {label} · {html.escape(price_text)}
+            </div>
+            {f'<div style="color:#475569;font-size:0.9rem;margin-top:0.35rem;">Buyer: {safe_buyer}</div>' if buyer else ''}
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
 
 
@@ -1753,10 +1674,7 @@ def render_horse_profile(horse: pd.Series) -> None:
     )
 
     with image_column:
-        sale_status = display_value(
-            horse.get("sale_status"),
-            "PENDING",
-        ).upper()
+        sale_status, _, _, _ = sale_result_values(horse)
 
         if sale_status == "OUT":
             render_out_takeover(
